@@ -1,0 +1,14 @@
+opencollection: 1.0.0
+info:
+  name: "MVCS"
+  type: workspace
+
+collections:
+  - name: "Api | v1"
+    path: "collections/Api - v1"
+
+specs:
+
+docs: ''
+
+activeEnvironmentUid: 1fnhsn400000000000000
