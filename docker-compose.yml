@@ -1,0 +1,81 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+    networks: [serving]
+  
+  api:
+    build:
+      context: ./be
+      dockerfile: Api/Dockerfile
+    container_name: api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_APP};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
+      ConnectionStrings__VcsDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_VCS};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASS}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [serving, internal]
+  
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER} 
+      POSTGRES_PASSWORD: ${POSTGRES_PASS} 
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_APP_USER: ${POSTGRES_APP_USER}
+      POSTGRES_APP_PASS: ${POSTGRES_APP_PASS}
+      POSTGRES_DB_APP: ${POSTGRES_DB_APP}
+      POSTGRES_DB_VCS: ${POSTGRES_DB_VCS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+  redis:
+    image: redis:8.6.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASS: ${REDIS_PASS}
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf.template:ro
+      - ./redis/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASS}", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+volumes:
+  postgres_data:
+  redis_data:
+    
+networks:
+  serving:
+  internal:
