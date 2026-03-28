@@ -1,4 +1,22 @@
 services:
+  api:
+    build:
+      context: ./be
+      dockerfile: Api/Dockerfile
+    container_name: api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_APP};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
+      ConnectionStrings__VcsDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_VCS};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASS}"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+  
   postgres:
     image: postgres:17-alpine
     container_name: postgres
