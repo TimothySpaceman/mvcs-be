@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Dummy;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class DummyController : ControllerBase
 {
     private readonly IConfiguration _config;
