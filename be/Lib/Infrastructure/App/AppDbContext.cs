@@ -1,3 +1,4 @@
+using Lib.Modules.Auth;
 using Lib.Modules.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,5 +11,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.ApplyUsersConfigurations();
+        modelBuilder.ApplyAuthConfigurations();
     }
 }

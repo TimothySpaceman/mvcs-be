@@ -1,10 +1,12 @@
 using Lib.Infrastructure.App;
+using Lib.Modules.Auth;
 using Lib.Modules.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAppInfrastructure(builder.Configuration);
 builder.Services.AddUsersModule();
+builder.Services.AddAuthModule();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

@@ -10,10 +10,12 @@ public class User
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
-    
+
     public UserAvatar? Avatar { get; private set; }
-    
-    private User(){}
+
+    private User()
+    {
+    }
 
     public static User Create(string username, string displayName, string email)
     {
@@ -28,10 +30,10 @@ public class User
             UpdatedAt = DateTimeOffset.UtcNow
         };
     }
-    
+
     public bool IsDeleted => DeletedAt.HasValue;
-    
-    public void VerifyEmail() 
+
+    public void VerifyEmail()
     {
         IsEmailVerified = true;
         UpdatedAt = DateTimeOffset.UtcNow;
