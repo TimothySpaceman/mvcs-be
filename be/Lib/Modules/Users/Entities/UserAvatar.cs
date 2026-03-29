@@ -1,4 +1,4 @@
-namespace Users.Lib.Entities;
+namespace Lib.Modules.Users.Entities;
 
 public class UserAvatar
 {

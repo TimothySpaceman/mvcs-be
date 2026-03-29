@@ -1,8 +1,8 @@
+using Lib.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Users.Lib.Entities;
 
-namespace Users.Lib.Infrastructure.Configurations;
+namespace Lib.Modules.Users.Configurations;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {

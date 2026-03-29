@@ -1,9 +1,8 @@
-﻿using System;
+﻿#nullable disable
+
 using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
-
-namespace App.Infrastructure.Migrations.Snapshots
+namespace Lib.Infrastructure.App.Migrations.Snapshots
 {
     /// <inheritdoc />
     public partial class init : Migration

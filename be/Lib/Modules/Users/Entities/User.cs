@@ -1,4 +1,4 @@
-namespace Users.Lib.Entities;
+namespace Lib.Modules.Users.Entities;
 
 public class User
 {
@@ -46,6 +46,5 @@ public class User
     public void Delete()
     {
         DeletedAt = DateTimeOffset.UtcNow;
-        UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

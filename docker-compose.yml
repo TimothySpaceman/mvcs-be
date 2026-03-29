@@ -60,7 +60,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./be/Shared/App.Infrastructure/Migrations/Sql:/flyway/sql
+      - ./be/Lib/Infrastructure/App/Migrations/Sql:/flyway/sql
     command: >
       -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_APP}
       -user=${POSTGRES_USER} 

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace App.Infrastructure;
+namespace Lib.Infrastructure.App;
 
 public static class AppInfrastructureExtensions
 {

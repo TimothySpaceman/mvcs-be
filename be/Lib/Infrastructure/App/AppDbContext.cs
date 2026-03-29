@@ -1,12 +1,14 @@
+using Lib.Modules.Users;
 using Microsoft.EntityFrameworkCore;
-using Users.Lib.Entities;
 
-namespace App.Infrastructure;
+namespace Lib.Infrastructure.App;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(User).Assembly);
+        base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.ApplyUsersConfigurations();
     }
 }

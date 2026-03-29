@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace App.Infrastructure;
+namespace Lib.Infrastructure.App;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
