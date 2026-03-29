@@ -53,6 +53,21 @@ services:
       timeout: 5s
       retries: 5
     networks: [internal]
+    
+  flyway_app: 
+    image: flyway/flyway:12-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./be/Shared/App.Infrastructure/Migrations/Sql:/flyway/sql
+    command: >
+      -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_APP}
+      -user=${POSTGRES_USER} 
+      -password=${POSTGRES_PASS}
+      -locations=filesystem:/flyway/sql
+      migrate
+    networks: [internal]
 
   redis:
     image: redis:8.6.2-alpine

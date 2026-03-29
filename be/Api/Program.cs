@@ -1,4 +1,8 @@
+using App.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAppInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
