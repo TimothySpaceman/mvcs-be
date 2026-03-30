@@ -1,4 +1,5 @@
 using Lib.Modules.Auth.DTOs;
+using Lib.Modules.Auth.Entities;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Services;
 using Lib.Shared.Exceptions;
@@ -7,11 +8,14 @@ namespace Lib.Modules.Auth.Services;
 
 public class AuthService(
     IUserService userService,
-    IJwtService jwtService,
+    ISessionService sessionService,
     IUserCredentialsService credentialsService
 ) : IAuthService
 {
-    public async Task<TokenPairDto> LoginWithCredentialsAsync(LoginWithCredentialsDto loginDto)
+    public async Task<TokenPairDto> LoginWithCredentialsAsync(
+        LoginWithCredentialsDto loginDto,
+        DeviceWithIpDto deviceDto
+    )
     {
         var user = await userService.GetByEmailAsync(loginDto.EmailOrUsername) ??
                    await userService.GetByUsernameAsync(loginDto.EmailOrUsername);
@@ -20,10 +24,16 @@ public class AuthService(
         var isValid = await credentialsService.VerifyAsync(new UserCredentialsVerifyDto(user.Id, loginDto.Password));
         if (!isValid) throw new InvalidCredentialsException("Invalid credentials");
 
-        var accessToken = jwtService.GenerateAccessToken(user);
-        var refreshToken = jwtService.GenerateRefreshToken(user);
-
-        return new TokenPairDto(accessToken, refreshToken);
+        return await sessionService.CreateAsync(new SessionCreateDto(
+            user.Id,
+            DeviceInfo.Create(
+                deviceDto.UserAgent,
+                deviceDto.Device,
+                deviceDto.OS,
+                deviceDto.Browser
+            ),
+            deviceDto.Ip
+        ));
     }
 
     public async Task<UserDto> RegisterAsync(RegisterDto registerDto)

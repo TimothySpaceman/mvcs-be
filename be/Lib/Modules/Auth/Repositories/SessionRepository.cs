@@ -22,9 +22,12 @@ public class SessionRepository(AppDbContext db) : ISessionRepository
             .ToListAsync();
     }
 
-    public Task<bool> ExistsByIdAsync(Guid id)
+    public Task<Session?> GetByTokenHashAsync(string tokenHash)
     {
-        return db.Set<Session>().AnyAsync(s => s.Id == id);
+        return db.Set<Session>()
+            .Include(s => s.User)
+            .Include(s => s.RefreshToken)
+            .FirstOrDefaultAsync(s => s.RefreshToken.TokenHash == tokenHash);
     }
 
     public async Task AddAsync(Session session)

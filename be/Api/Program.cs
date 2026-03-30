@@ -14,13 +14,12 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-if (app.Environment.IsDevelopment()) app.MapOpenApi("/api/openapi/{documentName}.json");
-
 app.UseAuthentication();
 app.UseAuthorization();
 
+if (app.Environment.IsDevelopment()) app.MapOpenApi("/api/openapi/{documentName}.json");
 app.MapControllers();
 
 app.Run();

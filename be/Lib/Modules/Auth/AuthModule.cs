@@ -96,6 +96,7 @@ public static class AuthModule
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         services.AddScoped<IUserCredentialsService, UserCredentialsService>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

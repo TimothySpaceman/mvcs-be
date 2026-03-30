@@ -5,6 +5,10 @@ namespace Lib.Modules.Auth.Services;
 
 public interface IAuthService
 {
-    public Task<TokenPairDto> LoginWithCredentialsAsync(LoginWithCredentialsDto loginDto);
+    public Task<TokenPairDto> LoginWithCredentialsAsync(
+        LoginWithCredentialsDto loginDto,
+        DeviceWithIpDto deviceDto
+    );
+
     public Task<UserDto> RegisterAsync(RegisterDto registerDto);
 }

@@ -10,7 +10,7 @@ public class Session
     public string IpAddress { get; private set; } = null!;
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset LastActiveAt { get; private set; }
-    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTimeOffset? RevokedAt { get; private set; }
 
     public User User { get; private set; } = null!;
     public RefreshToken RefreshToken { get; private set; } = null!;
@@ -22,8 +22,7 @@ public class Session
     public static Session Create(
         Guid userId,
         DeviceInfo deviceInfo,
-        string ipAddress,
-        DateTimeOffset expiresAt
+        string ipAddress
     )
     {
         return new Session
@@ -34,7 +33,18 @@ public class Session
             IpAddress = ipAddress,
             CreatedAt = DateTimeOffset.UtcNow,
             LastActiveAt = DateTimeOffset.UtcNow,
-            ExpiresAt = expiresAt
         };
+    }
+    
+    public bool IsRevoked => RevokedAt is not null;
+
+    public void Revoke()
+    {
+        RevokedAt = DateTimeOffset.UtcNow;
+    }
+    
+    public void Refresh()
+    {
+        LastActiveAt = DateTimeOffset.UtcNow;
     }
 }

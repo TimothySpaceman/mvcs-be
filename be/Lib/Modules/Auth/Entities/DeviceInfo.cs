@@ -10,4 +10,20 @@ public record DeviceInfo
     private DeviceInfo()
     {
     }
+
+    public static DeviceInfo Create(
+        string userAgent,
+        string device,
+        string os,
+        string browser
+    )
+    {
+        return new DeviceInfo
+        {
+            UserAgent = userAgent,
+            Device = device,
+            OS = os,
+            Browser = browser
+        };
+    }
 };

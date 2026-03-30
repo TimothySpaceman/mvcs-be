@@ -25,7 +25,7 @@ public class JwtService(IConfiguration config) : IJwtService
         var token = new JwtSecurityToken(
             issuer: config["JwtSettings:Access:Issuer"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(double.Parse(config["JwtSettings:Access:ExpiryMinutes"]!)),
+            expires: DateTime.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Access:ExpiryMinutes")),
             signingCredentials: creds
         );
 
@@ -47,7 +47,7 @@ public class JwtService(IConfiguration config) : IJwtService
         var token = new JwtSecurityToken(
             issuer: config["JwtSettings:Refresh:Issuer"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(double.Parse(config["JwtSettings:Refresh:ExpiryMinutes"]!)),
+            expires: DateTime.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Refresh:ExpiryMinutes")),
             signingCredentials: creds
         );
 

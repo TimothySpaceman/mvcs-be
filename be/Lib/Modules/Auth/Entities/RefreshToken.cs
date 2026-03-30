@@ -29,4 +29,6 @@ public class RefreshToken
             ExpiresAt = expiresAt
         };
     }
+
+    public bool IsExpired => ExpiresAt < DateTimeOffset.UtcNow;
 }

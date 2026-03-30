@@ -26,7 +26,10 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginWithCredentialsDto dto)
     {
-        var tokens = await authService.LoginWithCredentialsAsync(dto);
+        var tokens = await authService.LoginWithCredentialsAsync(
+            dto,
+            DeviceWithIpDto.FromHttpContext(HttpContext)
+        );
 
         var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLowerInvariant();
         if (clientType == "desktop") return Ok(tokens);
@@ -51,7 +54,7 @@ public class AuthController(
             HttpOnly = true,
             Secure = !env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(double.Parse(config["JwtSettings:Access:ExpiryMinutes"]!))
+            Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Access:ExpiryMinutes"))
         };
 
         var refreshCookieOptions = new CookieOptions
@@ -59,7 +62,7 @@ public class AuthController(
             HttpOnly = true,
             Secure = !env.IsDevelopment(),
             SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(double.Parse(config["JwtSettings:Refresh:ExpiryMinutes"]!))
+            Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Refresh:ExpiryMinutes"))
         };
 
         Response.Cookies.Append(config["JwtSettings:Access:CookieName"]!, tokens.AccessToken, accessCookieOptions);

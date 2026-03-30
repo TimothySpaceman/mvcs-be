@@ -15,16 +15,13 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.Property(s => s.IpAddress)
             .HasMaxLength(64)
             .IsRequired();
-        
-        builder.Property(c => c.CreatedAt)
+
+        builder.Property(s => s.CreatedAt)
             .IsRequired();
 
-        builder.Property(c => c.LastActiveAt)
+        builder.Property(s => s.LastActiveAt)
             .IsRequired();
-        
-        builder.Property(c => c.ExpiresAt)
-            .IsRequired();
-        
+
         builder.OwnsOne(s => s.DeviceInfo, device =>
         {
             device.Property(d => d.UserAgent)
@@ -43,12 +40,16 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
                 .HasColumnName("device_browser")
                 .HasMaxLength(128);
         });
-        
-        builder.HasOne(c => c.User)
-            .WithOne()
-            .HasForeignKey<Session>(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(c => c.UserId);
+        builder.HasOne(s => s.User)
+            .WithOne()
+            .HasForeignKey<Session>(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Ignore(s => s.IsRevoked);
+
+        builder.HasIndex(s => s.UserId);
+
+        builder.HasQueryFilter(s => s.RevokedAt == null);
     }
 }
