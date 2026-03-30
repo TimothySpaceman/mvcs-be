@@ -1,6 +1,6 @@
 using Lib.Modules.Users.Configurations;
-using Lib.Modules.Users.Interfaces;
 using Lib.Modules.Users.Repositories;
+using Lib.Modules.Users.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

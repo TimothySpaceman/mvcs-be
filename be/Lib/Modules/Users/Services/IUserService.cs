@@ -1,6 +1,6 @@
 using Lib.Modules.Users.DTOs;
 
-namespace Lib.Modules.Users.Interfaces;
+namespace Lib.Modules.Users.Services;
 
 public interface IUserService
 {

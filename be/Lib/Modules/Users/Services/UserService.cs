@@ -2,7 +2,7 @@ using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Entities;
 using Lib.Modules.Users.Repositories;
 
-namespace Lib.Modules.Users.Interfaces;
+namespace Lib.Modules.Users.Services;
 
 public class UserService(IUserRepository repository) : IUserService
 {
