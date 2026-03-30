@@ -34,7 +34,7 @@ public class UserService(IUserRepository repository) : IUserService
         return repository.ExistsByUsernameAsync(username);
     }
 
-    public async Task CreateAsync(UserCreateDto createDto)
+    public async Task<UserDto> CreateAsync(UserCreateDto createDto)
     {
         var user = User.Create(
             createDto.Username,
@@ -43,14 +43,16 @@ public class UserService(IUserRepository repository) : IUserService
         );
         await repository.AddAsync(user);
         await repository.SaveChangesAsync();
+        return UserDto.FromUser(user);
     }
 
-    public async Task UpdateByIdAsync(Guid id, UserUpdateDto updateDto)
+    public async Task<UserDto> UpdateByIdAsync(Guid id, UserUpdateDto updateDto)
     {
         var user = await repository.GetByIdAsync(id);
         if (user is null) throw new KeyNotFoundException("User not found");
         user.UpdateProfile(updateDto.DisplayName);
         await repository.SaveChangesAsync();
+        return UserDto.FromUser(user);
     }
 
     public async Task DeleteByIdAsync(Guid id, bool soft = true)

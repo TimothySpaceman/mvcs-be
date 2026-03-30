@@ -4,8 +4,8 @@ info:
   type: workspace
 
 collections:
-  - name: "Api | v1"
-    path: "collections/Api - v1"
+  - name: "Api | v1 - 2"
+    path: "collections/Api - v1 - 2"
 
 specs:
 

@@ -25,6 +25,8 @@ services:
       ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_APP};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
       ConnectionStrings__VcsDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_VCS};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
       ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASS}"
+      JwtSettings__Access__Secret: ${JWT_ACCESS_SECRET}
+      JwtSettings__Refresh__Secret: ${JWT_REFRESH_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,8 +65,8 @@ services:
       - ./be/Lib/Infrastructure/App/Migrations/Sql:/flyway/sql
     command: >
       -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_APP}
-      -user=${POSTGRES_USER} 
-      -password=${POSTGRES_PASS}
+      -user=${POSTGRES_APP_USER} 
+      -password=${POSTGRES_APP_PASS}
       -locations=filesystem:/flyway/sql
       migrate
     networks: [internal]

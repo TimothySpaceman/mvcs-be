@@ -1,4 +1,4 @@
 name: Dev
 variables:
   - name: baseUrl
-    value: mvcs.dev/api
+    value: mvcs.dev

@@ -1,4 +1,4 @@
-namespace Lib.Exceptions;
+namespace Lib.Shared.Exceptions;
 
 [Serializable]
 public class NotFoundException : Exception

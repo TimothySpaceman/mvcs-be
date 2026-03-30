@@ -1,7 +1,7 @@
-using Lib.Exceptions;
 using Lib.Modules.Auth.DTOs;
 using Lib.Modules.Auth.Entities;
 using Lib.Modules.Auth.Repositories;
+using Lib.Shared.Exceptions;
 using Microsoft.AspNetCore.Identity;
 
 namespace Lib.Modules.Auth.Services;
