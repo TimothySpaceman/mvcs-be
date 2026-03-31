@@ -27,7 +27,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
         context.Response.StatusCode = exception switch
         {
             BadRequestException => StatusCodes.Status400BadRequest,
-            InvalidCredentialsException => StatusCodes.Status401Unauthorized,
+            UnauthorizedException => StatusCodes.Status401Unauthorized,
             NotFoundException => StatusCodes.Status404NotFound,
             ConflictException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError

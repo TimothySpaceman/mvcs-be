@@ -50,12 +50,12 @@ public class SessionService(
         var session = await sessionRepository.GetByTokenHashAsync(tokenHash);
         if (session is null || session.IsRevoked)
         {
-            throw new InvalidOperationException("Attached session is revoked or does not exist");
+            throw new UnauthorizedException("Attached session is revoked or does not exist");
         }
 
         if (session.RefreshToken.IsExpired)
         {
-            throw new InvalidOperationException("Refresh token expired");
+            throw new UnauthorizedException("Refresh token expired");
         }
 
         var oldToken = session.RefreshToken;
@@ -70,12 +70,14 @@ public class SessionService(
         return tokenPairDto;
     }
 
-    public async Task RevokeByIdAsync(Guid id)
+    public async Task<bool> RevokeByTokenAsync(string refreshToken)
     {
-        var session = await sessionRepository.GetByIdAsync(id);
-        if (session is null) throw new NotFoundException("Session not found");
+        var session = await sessionRepository.GetByTokenHashAsync(HashToken(refreshToken));
+        if (session is null) return false;
+
         session.Revoke();
         await sessionRepository.SaveChangesAsync();
+        return true;
     }
 
     public async Task RevokeAllByUserIdAsync(Guid userId)

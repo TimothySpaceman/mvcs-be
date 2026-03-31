@@ -19,10 +19,10 @@ public class AuthService(
     {
         var user = await userService.GetByEmailAsync(loginDto.EmailOrUsername) ??
                    await userService.GetByUsernameAsync(loginDto.EmailOrUsername);
-        if (user is null) throw new InvalidCredentialsException("Invalid credentials");
+        if (user is null) throw new UnauthorizedException("Invalid credentials");
 
         var isValid = await credentialsService.VerifyAsync(new UserCredentialsVerifyDto(user.Id, loginDto.Password));
-        if (!isValid) throw new InvalidCredentialsException("Invalid credentials");
+        if (!isValid) throw new UnauthorizedException("Invalid credentials");
 
         return await sessionService.CreateAsync(new SessionCreateDto(
             user.Id,
@@ -55,5 +55,15 @@ public class AuthService(
             await userService.DeleteByIdAsync(user.Id);
             throw;
         }
+    }
+
+    public async Task<TokenPairDto> RefreshAsync(string refreshToken)
+    {
+        return await sessionService.RefreshAsync(refreshToken);
+    }
+
+    public async Task LogoutAsync(string refreshToken)
+    {
+        await sessionService.RevokeByTokenAsync(refreshToken);
     }
 }

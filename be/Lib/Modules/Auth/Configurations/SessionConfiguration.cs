@@ -42,10 +42,10 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         });
 
         builder.HasOne(s => s.User)
-            .WithOne()
-            .HasForeignKey<Session>(s => s.UserId)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.Ignore(s => s.IsRevoked);
 
         builder.HasIndex(s => s.UserId);

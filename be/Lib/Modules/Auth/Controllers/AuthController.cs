@@ -1,6 +1,7 @@
 using Lib.Modules.Auth.DTOs;
 using Lib.Modules.Auth.Services;
 using Lib.Modules.Users.DTOs;
+using Lib.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -31,20 +32,44 @@ public class AuthController(
             DeviceWithIpDto.FromHttpContext(HttpContext)
         );
 
+        return ProcessTokenPair(tokens);
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutDto dto)
+    {
+        var token = RequireRefreshToken(dto.RefreshToken);
+        await authService.LogoutAsync(token);
+
+        Response.Cookies.Delete(config["JwtSettings:Access:CookieName"]!);
+        Response.Cookies.Delete(config["JwtSettings:Refresh:CookieName"]!);
+
+        return Ok(new { message = "Logged out successfully" });
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
+    {
+        var token = RequireRefreshToken(dto.RefreshToken);
+
+        var tokens = await authService.RefreshAsync(token);
+        return ProcessTokenPair(tokens);
+    }
+
+    private string RequireRefreshToken(string? plainSource)
+    {
+        var token = plainSource ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
+        if (string.IsNullOrEmpty(token)) throw new BadRequestException("No refresh token provided");
+        return token;
+    }
+
+    private IActionResult ProcessTokenPair(TokenPairDto tokens)
+    {
         var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLowerInvariant();
         if (clientType == "desktop") return Ok(tokens);
 
         SetAuthCookies(tokens);
         return Ok(new { message = "Login successful" });
-    }
-
-    [HttpPost("logout")]
-    public IActionResult Logout()
-    {
-        Response.Cookies.Delete(config["JwtSettings:Access:CookieName"]!);
-        Response.Cookies.Delete(config["JwtSettings:Refresh:CookieName"]!);
-
-        return Ok(new { message = "Logged out successfully" });
     }
 
     private void SetAuthCookies(TokenPairDto tokens)

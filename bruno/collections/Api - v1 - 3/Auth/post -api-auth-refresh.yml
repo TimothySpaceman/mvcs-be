@@ -1,22 +1,18 @@
 info:
-  name: post /api/auth/login
+  name: post /api/auth/refresh
   type: http
-  seq: 2
+  seq: 4
   tags:
     - Auth
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/auth/login"
-  headers:
-    - name: X-Client-Type
-      value: desktop
+  url: "{{baseUrl}}/api/auth/refresh"
   body:
     type: json
     data: |-
       {
-        "emailOrUsername": "test@test.com",
-        "password": "Pass1234"
+        "refreshToken": ""
       }
   auth: inherit
 
@@ -30,14 +26,13 @@ examples:
   - name: 200 Response
     description: OK
     request:
-      url: "{{baseUrl}}/api/auth/login"
+      url: "{{baseUrl}}/api/auth/refresh"
       method: POST
       body:
         type: json
         data: |-
           {
-            "emailOrUsername": "",
-            "password": ""
+            "refreshToken": ""
           }
     response:
       status: 200

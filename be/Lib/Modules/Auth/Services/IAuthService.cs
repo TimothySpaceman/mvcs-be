@@ -11,4 +11,8 @@ public interface IAuthService
     );
 
     public Task<UserDto> RegisterAsync(RegisterDto registerDto);
+    
+    public Task<TokenPairDto> RefreshAsync(string refreshToken);
+    
+    public Task LogoutAsync(string refreshToken);
 }

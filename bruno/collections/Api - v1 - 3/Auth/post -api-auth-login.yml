@@ -8,15 +8,12 @@ info:
 http:
   method: POST
   url: "{{baseUrl}}/api/auth/login"
-  headers:
-    - name: X-Client-Type
-      value: desktop
   body:
     type: json
     data: |-
       {
-        "emailOrUsername": "test@test.com",
-        "password": "Pass1234"
+        "emailOrUsername": "",
+        "password": ""
       }
   auth: inherit
 
