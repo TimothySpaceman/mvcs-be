@@ -1,6 +1,8 @@
+using System.Data.Common;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Entities;
 using Lib.Modules.Users.Repositories;
+using Lib.Shared.Exceptions;
 
 namespace Lib.Modules.Users.Services;
 
@@ -36,6 +38,15 @@ public class UserService(IUserRepository repository) : IUserService
 
     public async Task<UserDto> CreateAsync(UserCreateDto createDto)
     {
+        if (await ExistsByEmailAsync(createDto.Email))
+        {
+            throw new ConflictException("Email already exists");
+        }   
+        if (await ExistsByUsernameAsync(createDto.Username))
+        {
+            throw new ConflictException("Username already exists");
+        }   
+        
         var user = User.Create(
             createDto.Username,
             createDto.DisplayName,
@@ -49,7 +60,7 @@ public class UserService(IUserRepository repository) : IUserService
     public async Task<UserDto> UpdateByIdAsync(Guid id, UserUpdateDto updateDto)
     {
         var user = await repository.GetByIdAsync(id);
-        if (user is null) throw new KeyNotFoundException("User not found");
+        if (user is null) throw new NotFoundException("User not found");
         user.UpdateProfile(updateDto.DisplayName);
         await repository.SaveChangesAsync();
         return UserDto.FromUser(user);
@@ -58,7 +69,7 @@ public class UserService(IUserRepository repository) : IUserService
     public async Task DeleteByIdAsync(Guid id, bool soft = true)
     {
         var user = await repository.GetByIdAsync(id);
-        if (user is null) throw new KeyNotFoundException("User not found");
+        if (user is null) throw new NotFoundException("User not found");
         
         if (soft)
         {
