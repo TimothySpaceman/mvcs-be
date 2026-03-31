@@ -25,21 +25,24 @@ public class AuthController(
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginWithCredentialsDto dto)
+    public async Task<IActionResult> Login(
+        [FromBody] LoginWithCredentialsDto dto,
+        [FromHeader(Name = "X-Client-Type")] string? clientType = null
+    )
     {
         var tokens = await authService.LoginWithCredentialsAsync(
             dto,
             DeviceWithIpDto.FromHttpContext(HttpContext)
         );
 
-        return ProcessTokenPair(tokens);
+        return ProcessTokenPair(tokens, clientType?.ToLowerInvariant() == "desktop");
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] LogoutDto dto)
+    public async Task<IActionResult> Logout([FromBody] LogoutDto? dto = null)
     {
-        var token = RequireRefreshToken(dto.RefreshToken);
-        await authService.LogoutAsync(token);
+        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
+        if (refreshToken is not null) await authService.LogoutAsync(refreshToken);
 
         Response.Cookies.Delete(config["JwtSettings:Access:CookieName"]!);
         Response.Cookies.Delete(config["JwtSettings:Refresh:CookieName"]!);
@@ -48,26 +51,21 @@ public class AuthController(
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshDto dto)
+    public async Task<IActionResult> Refresh(
+        [FromBody] RefreshDto? dto = null,
+        [FromHeader(Name = "X-Client-Type")] string? clientType = null
+    )
     {
-        var token = RequireRefreshToken(dto.RefreshToken);
+        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
+        if (string.IsNullOrEmpty(refreshToken)) throw new BadRequestException("No refresh token provided");
 
-        var tokens = await authService.RefreshAsync(token);
-        return ProcessTokenPair(tokens);
+        var newTokens = await authService.RefreshAsync(refreshToken);
+        return ProcessTokenPair(newTokens, clientType?.ToLowerInvariant() == "desktop");
     }
 
-    private string RequireRefreshToken(string? plainSource)
+    private IActionResult ProcessTokenPair(TokenPairDto tokens, bool isDesktop)
     {
-        var token = plainSource ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
-        if (string.IsNullOrEmpty(token)) throw new BadRequestException("No refresh token provided");
-        return token;
-    }
-
-    private IActionResult ProcessTokenPair(TokenPairDto tokens)
-    {
-        var clientType = Request.Headers["X-Client-Type"].FirstOrDefault()?.ToLowerInvariant();
-        if (clientType == "desktop") return Ok(tokens);
-
+        if (isDesktop) return Ok(tokens);
         SetAuthCookies(tokens);
         return Ok(new { message = "Login successful" });
     }

@@ -2,6 +2,7 @@ using Lib.Infrastructure.App;
 using Lib.Modules.Auth;
 using Lib.Modules.Users;
 using Lib.Shared.Middleware;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,16 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
-if (app.Environment.IsDevelopment()) app.MapOpenApi("/api/openapi/{documentName}.json");
+if (app.Environment.IsDevelopment())
+{
+    const string openApiPattern = "/api/openapi/{documentName}.json";
+    app.MapOpenApi(openApiPattern);
+    app.MapScalarApiReference("/api/docs", options =>
+    {
+        options.OpenApiRoutePattern = openApiPattern;
+    });
+}
+
 app.MapControllers();
 
 app.Run();
