@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using Lib.Modules.Auth.Configurations;
 using Lib.Modules.Auth.Entities;
@@ -42,6 +43,7 @@ public static class AuthModule
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = config["JwtSettings:Access:Issuer"],
@@ -60,6 +62,7 @@ public static class AuthModule
                                 out var token
                             )
                         ) context.Token = token;
+                        // throw new Exception(token);
                         return Task.CompletedTask;
                     }
                 };
@@ -82,11 +85,14 @@ public static class AuthModule
                 options.ForwardDefaultSelector = context =>
                 {
                     var header = context.Request.Headers.Authorization.ToString();
-                    if (!string.IsNullOrEmpty(header) && header.StartsWith("Bearer "))
+                    if (
+                        (!string.IsNullOrEmpty(header) && header.StartsWith("Bearer ")) ||
+                        context.Request.Cookies.ContainsKey(config["JwtSettings:Access:CookieName"]!)
+                    )
                     {
                         return JwtBearerDefaults.AuthenticationScheme;
                     }
-
+                    
                     return CookieAuthenticationDefaults.AuthenticationScheme;
                 };
             });

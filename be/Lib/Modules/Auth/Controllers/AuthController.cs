@@ -1,7 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Lib.Modules.Auth.DTOs;
 using Lib.Modules.Auth.Services;
 using Lib.Modules.Users.DTOs;
+using Lib.Modules.Users.Services;
 using Lib.Shared.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +17,7 @@ namespace Lib.Modules.Auth.Controllers;
 [Route("api/auth")]
 public class AuthController(
     IAuthService authService,
+    IUserService userService,
     IConfiguration config,
     IHostEnvironment env
 ) : ControllerBase
@@ -56,18 +61,34 @@ public class AuthController(
         [FromHeader(Name = "X-Client-Type")] string? clientType = null
     )
     {
-        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
+        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Refresh:CookieName"]!];
         if (string.IsNullOrEmpty(refreshToken)) throw new BadRequestException("No refresh token provided");
 
         var newTokens = await authService.RefreshAsync(refreshToken);
         return ProcessTokenPair(newTokens, clientType?.ToLowerInvariant() == "desktop");
     }
 
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) 
+                          ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+
+        if (userIdClaim is null) return Unauthorized("Unable to identify the user");
+        var userId = Guid.Parse(userIdClaim.Value);
+        
+        var user = await userService.GetByIdAsync(userId);
+        if (user is null) return NotFound("User not found");
+        
+        return Ok(user);
+    }
+
     private IActionResult ProcessTokenPair(TokenPairDto tokens, bool isDesktop)
     {
         if (isDesktop) return Ok(tokens);
         SetAuthCookies(tokens);
-        return Ok(new { message = "Login successful" });
+        return Ok(new { message = "Success" });
     }
 
     private void SetAuthCookies(TokenPairDto tokens)
