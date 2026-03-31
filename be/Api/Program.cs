@@ -13,15 +13,26 @@ builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NextJsDev", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseAuthentication();
-app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors("NextJsDev");
+    
     const string openApiPattern = "/api/openapi/{documentName}.json";
     app.MapOpenApi(openApiPattern);
     app.MapScalarApiReference("/api/docs", options =>
@@ -29,6 +40,9 @@ if (app.Environment.IsDevelopment())
         options.OpenApiRoutePattern = openApiPattern;
     });
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

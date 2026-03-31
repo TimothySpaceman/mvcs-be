@@ -93,19 +93,21 @@ public class AuthController(
 
     private void SetAuthCookies(TokenPairDto tokens)
     {
+        var isDev = env.IsDevelopment();    
+            
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = !env.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            SameSite = isDev ? SameSiteMode.None : SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Access:ExpiryMinutes"))
         };
 
         var refreshCookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = !env.IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            SameSite = isDev ? SameSiteMode.None : SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Refresh:ExpiryMinutes"))
         };
 
