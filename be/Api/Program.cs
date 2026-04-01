@@ -1,4 +1,5 @@
 using Lib.Infrastructure.App;
+using Lib.Infrastructure.Redis;
 using Lib.Modules.Auth;
 using Lib.Modules.Users;
 using Lib.Shared.Middleware;
@@ -7,6 +8,8 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAppInfrastructure(builder.Configuration);
+builder.Services.AddRedis(builder.Configuration);
+
 builder.Services.AddUsersModule();
 builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
 

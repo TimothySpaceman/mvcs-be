@@ -4,7 +4,6 @@ using Lib.Modules.Auth.DTOs;
 using Lib.Modules.Auth.Services;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Services;
-using Lib.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -62,7 +61,11 @@ public class AuthController(
     )
     {
         var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Refresh:CookieName"]!];
-        if (string.IsNullOrEmpty(refreshToken)) throw new BadRequestException("No refresh token provided");
+        if (string.IsNullOrEmpty(refreshToken))
+            return BadRequest(new
+            {
+                message = "Refresh token is not provided"
+            });
 
         var newTokens = await authService.RefreshAsync(refreshToken);
         return ProcessTokenPair(newTokens, clientType?.ToLowerInvariant() == "desktop");
@@ -72,15 +75,28 @@ public class AuthController(
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
 
-        if (userIdClaim is null) return Unauthorized("Unable to identify the user");
+        if (userIdClaim is null)
+        {
+            return Unauthorized(new
+            {
+                message = "Unable to identify the user"
+            });
+        }
+
         var userId = Guid.Parse(userIdClaim.Value);
-        
+
         var user = await userService.GetByIdAsync(userId);
-        if (user is null) return NotFound("User not found");
-        
+        if (user is null)
+        {
+            return NotFound(new
+            {
+                message = "User not found"
+            });
+        }
+
         return Ok(user);
     }
 
@@ -93,8 +109,8 @@ public class AuthController(
 
     private void SetAuthCookies(TokenPairDto tokens)
     {
-        var isDev = env.IsDevelopment();    
-            
+        var isDev = env.IsDevelopment();
+
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,

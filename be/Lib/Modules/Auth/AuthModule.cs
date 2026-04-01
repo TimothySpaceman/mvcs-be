@@ -104,6 +104,7 @@ public static class AuthModule
         services.AddScoped<IUserCredentialsService, UserCredentialsService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IDeviceAuthService, DeviceAuthService>();
 
         return services;
     }

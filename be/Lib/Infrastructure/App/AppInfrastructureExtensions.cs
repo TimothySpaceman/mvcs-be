@@ -8,11 +8,11 @@ public static class AppInfrastructureExtensions
 {
     public static IServiceCollection AddAppInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration config
     )
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("AppDb"))
+            options.UseNpgsql(config.GetConnectionString("AppDb"))
         );
         return services;
     }

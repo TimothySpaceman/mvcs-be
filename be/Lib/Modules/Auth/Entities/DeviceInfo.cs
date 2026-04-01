@@ -7,7 +7,7 @@ public record DeviceInfo
     public string? OS { get; init; }
     public string? Browser { get; init; }
 
-    private DeviceInfo()
+    public DeviceInfo()
     {
     }
 

@@ -34,7 +34,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
         };
 
         var isInternal = context.Response.StatusCode == StatusCodes.Status500InternalServerError;
-        var response = new { error = isInternal ? "Internal server error" : exception.Message };
+        var response = new { message = isInternal ? "Internal server error" : exception.Message };
 
         await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
