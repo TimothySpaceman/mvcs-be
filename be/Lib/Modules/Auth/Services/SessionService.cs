@@ -46,16 +46,17 @@ public class SessionService(
 
     public async Task<TokenPairDto> RefreshAsync(string refreshToken)
     {
+        var principal = jwtService.Validate(refreshToken, "Refresh");
+        if (principal is null)
+        {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
         var tokenHash = HashToken(refreshToken);
         var session = await sessionRepository.GetByTokenHashAsync(tokenHash);
         if (session is null || session.IsRevoked)
         {
             throw new UnauthorizedException("Attached session is revoked or does not exist");
-        }
-
-        if (session.RefreshToken.IsExpired)
-        {
-            throw new UnauthorizedException("Refresh token expired");
         }
 
         var oldToken = session.RefreshToken;

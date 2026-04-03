@@ -45,7 +45,7 @@ public class AuthController(
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] LogoutDto? dto = null)
     {
-        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Access:CookieName"]!];
+        var refreshToken = dto?.RefreshToken ?? Request.Cookies[config["JwtSettings:Refresh:CookieName"]!];
         if (refreshToken is not null) await authService.LogoutAsync(refreshToken);
 
         Response.Cookies.Delete(config["JwtSettings:Access:CookieName"]!);

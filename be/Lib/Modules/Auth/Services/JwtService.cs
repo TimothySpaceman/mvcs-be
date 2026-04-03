@@ -53,4 +53,32 @@ public class JwtService(IConfiguration config) : IJwtService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    
+    public ClaimsPrincipal? Validate(string token, string settingsPrefix)
+    {
+        var secret = config[$"JwtSettings:{settingsPrefix}:Secret"]!;
+        var issuer = config[$"JwtSettings:{settingsPrefix}:Issuer"]!;
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+        var validationParams = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            IssuerSigningKey = key,
+            ClockSkew = TimeSpan.Zero
+        };
+
+        try
+        {
+            return new JwtSecurityTokenHandler()
+                .ValidateToken(token, validationParams, out _);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

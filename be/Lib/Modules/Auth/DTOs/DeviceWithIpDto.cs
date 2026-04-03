@@ -14,14 +14,15 @@ public record DeviceWithIpDto(
     {
         var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
                  ?? "unknown";
-        
+
         var userAgent = context.Request.Headers["User-Agent"].ToString() ?? "unknown";
+        var deviceName = context.Request.Headers["X-Device-Name"].FirstOrDefault();
         var (device, os, browser) = ParseUserAgent(userAgent);
 
         return new DeviceWithIpDto(
             ip,
             userAgent,
-            device,
+            deviceName ?? device,
             os,
             browser
         );
@@ -33,27 +34,32 @@ public record DeviceWithIpDto(
             return ("unknown", "unknown", "unknown");
 
         var uaLower = ua.ToLower();
-        
-        var os =
-            uaLower.Contains("windows") ? "Windows" :
-            uaLower.Contains("android") ? "Android" :
-            uaLower.Contains("iphone") || uaLower.Contains("ipad") ? "iOS" :
-            uaLower.Contains("mac os") || uaLower.Contains("macintosh") ? "macOS" :
-            uaLower.Contains("linux") ? "Linux" :
-            "unknown";
-        
+
+        var os = ParseOs(uaLower);
+
         var browser =
             uaLower.Contains("edg") ? "Edge" :
             uaLower.Contains("chrome") ? "Chrome" :
             uaLower.Contains("safari") && !uaLower.Contains("chrome") ? "Safari" :
             uaLower.Contains("firefox") ? "Firefox" :
             "unknown";
-        
+
         var device =
             uaLower.Contains("mobile") ? "Mobile" :
             uaLower.Contains("tablet") ? "Tablet" :
             "Desktop";
 
         return (device, os, browser);
+    }
+
+    private static string ParseOs(string userAgent)
+    {
+        if (userAgent.Contains("maccatalyst")) return "macOS";
+        if (userAgent.Contains("mac os x")) return "macOS";
+        if (userAgent.Contains("windows")) return "Windows";
+        if (userAgent.Contains("linux")) return "Linux";
+        if (userAgent.Contains("android")) return "Android";
+        if (userAgent.Contains("ios")) return "iOS";
+        return "unknown";
     }
 };

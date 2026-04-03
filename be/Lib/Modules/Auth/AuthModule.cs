@@ -49,7 +49,8 @@ public static class AuthModule
                     ValidIssuer = config["JwtSettings:Access:Issuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(config["JwtSettings:Access:Secret"]!)
-                    )
+                    ),
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 options.Events = new JwtBearerEvents

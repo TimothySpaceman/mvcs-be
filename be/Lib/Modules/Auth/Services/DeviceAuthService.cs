@@ -49,12 +49,11 @@ public class DeviceAuthService(
         var key = GetUserCodeKey(userCode);
 
         var transaction = await redisService.GetAsync<DeviceAuthTransactionDto>(key);
-        if (transaction is null)
+        if (transaction is null || transaction.IsConfirmed)
         {
             throw new NotFoundException("No pending transaction found by this user code");
         }
 
-        if (transaction.IsConfirmed) return;
         if (transaction.IsAborted)
         {
             throw new InvalidOperationException("Transaction is aborted");
