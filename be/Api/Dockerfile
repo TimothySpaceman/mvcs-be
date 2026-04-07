@@ -3,6 +3,7 @@ WORKDIR /src
 
 COPY MVCS.Backend.sln .
 COPY Api/Api.csproj Api/
+COPY Lib/Lib.csproj Lib/
 RUN dotnet restore
 
 COPY . .
