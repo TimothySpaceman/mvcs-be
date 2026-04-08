@@ -1,6 +1,7 @@
 using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Auth;
+using Lib.Modules.Storages;
 using Lib.Modules.Users;
 using Lib.Shared.Middleware;
 using Scalar.AspNetCore;
@@ -12,6 +13,7 @@ builder.Services.AddRedis(builder.Configuration);
 
 builder.Services.AddUsersModule();
 builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
+builder.Services.AddStoragesModule();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -35,13 +37,10 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("NextJsDev");
-    
+
     const string openApiPattern = "/api/openapi/{documentName}.json";
     app.MapOpenApi(openApiPattern);
-    app.MapScalarApiReference("/api/docs", options =>
-    {
-        options.OpenApiRoutePattern = openApiPattern;
-    });
+    app.MapScalarApiReference("/api/docs", options => { options.OpenApiRoutePattern = openApiPattern; });
 }
 
 app.UseAuthentication();
