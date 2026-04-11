@@ -1,0 +1,35 @@
+using System.Text.Json;
+using Lib.Modules.Storages.Entities;
+using Lib.Modules.Uploads.Adapters;
+using Lib.Modules.Uploads.ConfigModels;
+using Microsoft.Extensions.Logging;
+
+namespace Lib.Modules.Uploads.Factories;
+
+public class StorageAdapterFactory(ILoggerFactory loggerFactory) : IStorageAdapterFactory
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+ 
+    public IStorageAdapter Create(Storage storage)
+    {
+        return storage.StorageType.Key switch
+        {
+            "aws-s3" => CreateS3Adapter(storage),
+            var key  => throw new NotSupportedException($"No storage adapter for storage type '{key}'")
+        };
+    }
+ 
+    private S3StorageAdapter CreateS3Adapter(Storage storage)
+    {
+        var config = JsonSerializer.Deserialize<S3StorageConfig>(storage.Config, JsonOptions);
+        if (config is null)
+        {
+            throw new InvalidOperationException("Failed to parse S3 storage config");
+        }
+ 
+        return new S3StorageAdapter(config, loggerFactory);
+    }
+}

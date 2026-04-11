@@ -1,4 +1,5 @@
 using Lib.Modules.Storages.DTOs;
+using Lib.Modules.Storages.Entities;
 
 namespace Lib.Modules.Storages.Services;
 
@@ -6,6 +7,7 @@ public interface IStorageService
 {
     Task<List<StorageDto>> GetAllByUserIdAsync(Guid userId);
     Task<StorageDto?> GetByIdAsync(Guid id, Guid userId);
+    Task<Storage> GetRawByIdAsync(Guid id, Guid userId);
     Task<StorageConfigDto> GetConfigAsync(Guid id, Guid userId);
     Task<StorageDto> CreateAsync(Guid ownerId, StorageCreateDto createDto);
     Task<StorageDto> UpdateAsync(Guid id, Guid userId, StorageUpdateDto updateDto);

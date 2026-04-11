@@ -18,6 +18,17 @@ public class StorageService(IStorageRepository repository) : IStorageService
         var storage = await repository.GetByIdWithAccessAsync(id, userId);
         return storage is null ? null : StorageDto.FromStorage(storage, userId);
     }
+    
+    public async Task<Storage> GetRawByIdAsync(Guid id, Guid userId)
+    {
+        var storage = await repository.GetByIdWithAccessAsync(id, userId);
+        if (storage is null)
+        {
+            throw new NotFoundException("Storage not found or access denied");
+        }
+ 
+        return storage;
+    }
 
     public async Task<StorageConfigDto> GetConfigAsync(Guid id, Guid userId)
     {
