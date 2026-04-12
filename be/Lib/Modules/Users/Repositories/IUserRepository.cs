@@ -4,12 +4,12 @@ namespace Lib.Modules.Users.Repositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByEmailAsync(string email);
-    Task<User?> GetByUsernameAsync(string username);
-    Task<bool> ExistsByEmailAsync(string email);
-    Task<bool> ExistsByUsernameAsync(string username);
-    Task AddAsync(User user);
-    void Delete(User user);
-    Task SaveChangesAsync();
+    public Task<User?> GetByIdAsync(Guid id);
+    public Task<User?> GetByEmailAsync(string email);
+    public Task<User?> GetByUsernameAsync(string username);
+    public Task<bool> ExistsByEmailAsync(string email);
+    public Task<bool> ExistsByUsernameAsync(string username);
+    public Task AddAsync(User user);
+    public void Delete(User user);
+    public Task SaveChangesAsync();
 }

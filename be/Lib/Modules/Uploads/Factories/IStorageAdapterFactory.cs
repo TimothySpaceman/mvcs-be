@@ -5,5 +5,5 @@ namespace Lib.Modules.Uploads.Factories;
 
 public interface IStorageAdapterFactory
 {
-    IStorageAdapter Create(Storage storage);
+    public IStorageAdapter Create(Storage storage);
 }

@@ -4,13 +4,13 @@ namespace Lib.Modules.Storages.Repositories;
 
 public interface IStorageRepository
 {
-    Task<Storage?> GetByIdAsync(Guid id);
-    Task<Storage?> GetByIdWithAccessAsync(Guid id, Guid userId);
-    Task<List<Storage>> GetAllByUserIdAsync(Guid userId);
-    Task<bool> ExistsByIdAsync(Guid id);
-    Task AddAsync(Storage storage);
-    void Delete(Storage storage);
-    Task AddAccessAsync(StorageAccess access);
-    void DeleteAccess(StorageAccess access);
-    Task SaveChangesAsync();
+    public Task<Storage?> GetByIdAsync(Guid id);
+    public Task<Storage?> GetByIdWithAccessAsync(Guid id, Guid userId);
+    public Task<List<Storage>> GetAllByUserIdAsync(Guid userId);
+    public Task<bool> ExistsByIdAsync(Guid id);
+    public Task AddAsync(Storage storage);
+    public void Delete(Storage storage);
+    public Task AddAccessAsync(StorageAccess access);
+    public void DeleteAccess(StorageAccess access);
+    public Task SaveChangesAsync();
 }

@@ -4,6 +4,6 @@ namespace Lib.Modules.Storages.Repositories;
 
 public interface IStorageTypeRepository
 {
-    Task<List<StorageType>> GetAllAsync();
-    Task<StorageType?> GetByIdAsync(Guid id);
+    public Task<List<StorageType>> GetAllAsync();
+    public Task<StorageType?> GetByIdAsync(Guid id);
 }

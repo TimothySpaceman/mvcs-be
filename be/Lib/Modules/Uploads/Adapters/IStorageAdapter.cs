@@ -1,10 +1,8 @@
-using tusdotnet.Interfaces;
+using Lib.Modules.Uploads.Stores;
 
 namespace Lib.Modules.Uploads.Adapters;
 
 public interface IStorageAdapter
 {
-    ITusStore CreateTusStore();
-    string BuildFinalKey(Guid userId, string scopePath, string fileName);
-    Task MoveFileAsync(string tempKey, string finalKey, CancellationToken cancellationToken);
+    public IFullTusStore CreateTusStore(Guid userId, string scopePath);
 }

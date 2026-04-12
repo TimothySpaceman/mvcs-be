@@ -4,6 +4,6 @@ namespace Lib.Modules.Storages.Services;
 
 public interface IStorageTypeService
 {
-    Task<List<StorageTypeInfoDto>> GetAllAsync();
-    Task<StorageTypeDto?> GetByIdAsync(Guid id);
+    public Task<List<StorageTypeInfoDto>> GetAllAsync();
+    public Task<StorageTypeDto?> GetByIdAsync(Guid id);
 }

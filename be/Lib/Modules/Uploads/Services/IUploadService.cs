@@ -5,7 +5,7 @@ namespace Lib.Modules.Uploads.Services;
 
 public interface IUploadService
 {
-    Task<DefaultTusConfiguration> GetTusConfigurationAsync(
+    public Task<DefaultTusConfiguration> GetTusConfigurationAsync(
         Guid storageId,
         Guid userId,
         string scopePath,

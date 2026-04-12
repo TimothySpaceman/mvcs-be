@@ -14,9 +14,9 @@ public static class TusEndpoints
     {
         var storageId = GetStorageId(httpContext);
         var userId = GetUserId(httpContext);
- 
+
         if (storageId is null || userId is null) return null;
- 
+
         var uploadService = httpContext.RequestServices.GetRequiredService<IUploadService>();
         return await uploadService.GetTusConfigurationAsync(
             (Guid)storageId,
@@ -29,12 +29,7 @@ public static class TusEndpoints
     private static Guid? GetStorageId(HttpContext httpContext)
     {
         var storageIdStr = httpContext.GetRouteValue("storageId")?.ToString();
-        if (!Guid.TryParse(storageIdStr, out var storageId))
-        {
-            return null;
-        }
-
-        return storageId;
+        return Guid.TryParse(storageIdStr, out var storageId) ? storageId : null;
     }
 
     private static Guid? GetUserId(HttpContext httpContext)

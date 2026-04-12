@@ -5,14 +5,14 @@ namespace Lib.Modules.Storages.Services;
 
 public interface IStorageService
 {
-    Task<List<StorageDto>> GetAllByUserIdAsync(Guid userId);
-    Task<StorageDto?> GetByIdAsync(Guid id, Guid userId);
-    Task<Storage> GetRawByIdAsync(Guid id, Guid userId);
-    Task<StorageConfigDto> GetConfigAsync(Guid id, Guid userId);
-    Task<StorageDto> CreateAsync(Guid ownerId, StorageCreateDto createDto);
-    Task<StorageDto> UpdateAsync(Guid id, Guid userId, StorageUpdateDto updateDto);
-    Task UpdateConfigAsync(Guid id, Guid userId, StorageUpdateConfigDto updateDto);
-    Task GrantAccessAsync(Guid id, Guid userId, StorageGrantAccessDto grantDto);
-    Task RevokeAccessAsync(Guid id, Guid userId, Guid targetUserId);
-    Task DeleteAsync(Guid id, Guid userId);
+    public Task<List<StorageDto>> GetAllByUserIdAsync(Guid userId);
+    public Task<StorageDto?> GetByIdAsync(Guid id, Guid userId);
+    public Task<Storage> GetRawByIdAsync(Guid id, Guid userId);
+    public Task<StorageConfigDto> GetConfigAsync(Guid id, Guid userId);
+    public Task<StorageDto> CreateAsync(Guid ownerId, StorageCreateDto createDto);
+    public Task<StorageDto> UpdateAsync(Guid id, Guid userId, StorageUpdateDto updateDto);
+    public Task UpdateConfigAsync(Guid id, Guid userId, StorageUpdateConfigDto updateDto);
+    public Task GrantAccessAsync(Guid id, Guid userId, StorageGrantAccessDto grantDto);
+    public Task RevokeAccessAsync(Guid id, Guid userId, Guid targetUserId);
+    public Task DeleteAsync(Guid id, Guid userId);
 }
