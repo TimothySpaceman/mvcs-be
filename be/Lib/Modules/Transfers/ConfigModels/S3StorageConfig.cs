@@ -1,4 +1,4 @@
-namespace Lib.Modules.Uploads.ConfigModels;
+namespace Lib.Modules.Transfers.ConfigModels;
 
 public record S3StorageConfig(
     string Endpoint,

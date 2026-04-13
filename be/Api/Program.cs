@@ -2,7 +2,7 @@ using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Auth;
 using Lib.Modules.Storages;
-using Lib.Modules.Uploads;
+using Lib.Modules.Transfers;
 using Lib.Modules.Users;
 using Lib.Shared.Middleware;
 using Scalar.AspNetCore;
@@ -15,7 +15,7 @@ builder.Services.AddRedis(builder.Configuration);
 builder.Services.AddUsersModule();
 builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
 builder.Services.AddStoragesModule();
-builder.Services.AddUploadsModule();
+builder.Services.AddTransfersModule();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -49,6 +49,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapUploadsModule();
+app.MapTransfersModule();
 
 app.Run();

@@ -4,12 +4,12 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Lib.Infrastructure.Redis;
-using Lib.Modules.Uploads.ConfigModels;
-using Lib.Modules.Uploads.DTOs;
+using Lib.Modules.Transfers.ConfigModels;
+using Lib.Modules.Transfers.DTOs;
 using Lib.Shared.Exceptions;
 using tusdotnet.Models.Configuration;
 
-namespace Lib.Modules.Uploads.Stores;
+namespace Lib.Modules.Transfers.Stores;
 
 public class TusS3Store : IFullTusStore, IDisposable
 {

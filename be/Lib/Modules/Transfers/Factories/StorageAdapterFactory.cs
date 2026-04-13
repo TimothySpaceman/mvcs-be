@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Storages.Entities;
-using Lib.Modules.Uploads.Adapters;
-using Lib.Modules.Uploads.ConfigModels;
+using Lib.Modules.Transfers.Adapters;
+using Lib.Modules.Transfers.ConfigModels;
 
-namespace Lib.Modules.Uploads.Factories;
+namespace Lib.Modules.Transfers.Factories;
 
 public class StorageAdapterFactory(IRedisService redisService) : IStorageAdapterFactory
 {

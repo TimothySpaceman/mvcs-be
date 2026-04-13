@@ -1,6 +1,6 @@
 using tusdotnet.Interfaces;
 
-namespace Lib.Modules.Uploads.Stores;
+namespace Lib.Modules.Transfers.Stores;
 
 public interface IFullTusStore : ITusPipelineStore, ITusCreationStore, ITusTerminationStore, ITusCompletionStore
 {

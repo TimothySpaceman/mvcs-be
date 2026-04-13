@@ -1,12 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Lib.Modules.Uploads.Services;
+using Lib.Modules.Transfers.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using tusdotnet.Models;
 
-namespace Lib.Modules.Uploads.Endpoints;
+namespace Lib.Modules.Transfers.Endpoints;
 
 public static class TusEndpoints
 {
@@ -17,7 +17,7 @@ public static class TusEndpoints
 
         if (storageId is null || userId is null) return null;
 
-        var uploadService = httpContext.RequestServices.GetRequiredService<IUploadService>();
+        var uploadService = httpContext.RequestServices.GetRequiredService<ITransferService>();
         return await uploadService.GetTusConfigurationAsync(
             (Guid)storageId,
             (Guid)userId,

@@ -1,7 +1,7 @@
 using Lib.Modules.Storages.Entities;
-using Lib.Modules.Uploads.Adapters;
+using Lib.Modules.Transfers.Adapters;
 
-namespace Lib.Modules.Uploads.Factories;
+namespace Lib.Modules.Transfers.Factories;
 
 public interface IStorageAdapterFactory
 {

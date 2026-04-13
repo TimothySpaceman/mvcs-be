@@ -1,8 +1,8 @@
 using Lib.Infrastructure.Redis;
-using Lib.Modules.Uploads.ConfigModels;
-using Lib.Modules.Uploads.Stores;
+using Lib.Modules.Transfers.ConfigModels;
+using Lib.Modules.Transfers.Stores;
 
-namespace Lib.Modules.Uploads.Adapters;
+namespace Lib.Modules.Transfers.Adapters;
 
 public class S3StorageAdapter(
     S3StorageConfig config,

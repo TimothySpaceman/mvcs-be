@@ -1,4 +1,4 @@
-namespace Lib.Modules.Uploads.DTOs;
+namespace Lib.Modules.Transfers.DTOs;
 
 public record S3UploadRecordDto(
     string S3UploadId,

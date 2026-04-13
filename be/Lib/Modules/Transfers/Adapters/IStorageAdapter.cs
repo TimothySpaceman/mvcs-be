@@ -1,6 +1,6 @@
-using Lib.Modules.Uploads.Stores;
+using Lib.Modules.Transfers.Stores;
 
-namespace Lib.Modules.Uploads.Adapters;
+namespace Lib.Modules.Transfers.Adapters;
 
 public interface IStorageAdapter
 {

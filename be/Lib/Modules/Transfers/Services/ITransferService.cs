@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using tusdotnet.Models;
 
-namespace Lib.Modules.Uploads.Services;
+namespace Lib.Modules.Transfers.Services;
 
-public interface IUploadService
+public interface ITransferService
 {
     public Task<DefaultTusConfiguration> GetTusConfigurationAsync(
         Guid storageId,

@@ -1,6 +1,6 @@
 using tusdotnet.Models.Configuration;
 
-namespace Lib.Modules.Uploads.Stores;
+namespace Lib.Modules.Transfers.Stores;
 
 public interface ITusCompletionStore
 {

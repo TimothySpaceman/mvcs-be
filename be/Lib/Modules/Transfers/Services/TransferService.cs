@@ -1,15 +1,15 @@
 using Lib.Modules.Storages.Services;
-using Lib.Modules.Uploads.Factories;
+using Lib.Modules.Transfers.Factories;
 using Microsoft.AspNetCore.Http;
 using tusdotnet.Models;
 using tusdotnet.Models.Configuration;
 
-namespace Lib.Modules.Uploads.Services;
+namespace Lib.Modules.Transfers.Services;
 
-public class UploadService(
+public class TransferService(
     IStorageService storageService,
     IStorageAdapterFactory adapterFactory
-) : IUploadService
+) : ITransferService
 {
     public async Task<DefaultTusConfiguration> GetTusConfigurationAsync(
         Guid storageId,
