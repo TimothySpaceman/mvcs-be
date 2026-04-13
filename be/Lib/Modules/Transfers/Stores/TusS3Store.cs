@@ -1,9 +1,9 @@
 using System.IO.Pipelines;
 using System.Text;
-using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Lib.Infrastructure.Redis;
+using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.ConfigModels;
 using Lib.Modules.Transfers.DTOs;
 using Lib.Shared.Exceptions;
@@ -19,13 +19,14 @@ public class TusS3Store : IFullTusStore, IDisposable
     private readonly IRedisService _redisService;
     private readonly AmazonS3Client _s3Client;
 
-    public TusS3Store(S3StorageConfig config, Guid userId, string scopePath, IRedisService redisService)
+    public TusS3Store(S3StorageConfig config, AmazonS3Client s3Client, Guid userId, string scopePath,
+        IRedisService redisService)
     {
         _config = config;
+        _s3Client = s3Client;
         _userId = userId;
         _scopePath = scopePath;
         _redisService = redisService;
-        _s3Client = CreateS3Client(config);
     }
 
     public async Task<string> CreateFileAsync(long uploadLength, string metadata, CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ public class TusS3Store : IFullTusStore, IDisposable
         var request = new InitiateMultipartUploadRequest
         {
             BucketName = _config.Bucket,
-            Key = BuildFilePath(fileName)
+            Key = S3StorageAdapter.BuildFilePath(_config, _userId, _scopePath, fileName)
         };
         var response = await _s3Client.InitiateMultipartUploadAsync(request, cancellationToken);
 
@@ -173,27 +174,6 @@ public class TusS3Store : IFullTusStore, IDisposable
             );
     }
 
-    private string BuildFilePath(string fileName)
-    {
-        var parts = new List<string>();
-
-        if (!string.IsNullOrEmpty(_config.RootPrefix))
-        {
-            parts.Add(_config.RootPrefix.Trim('/'));
-        }
-
-        parts.Add($"users/{_userId}");
-
-        if (!string.IsNullOrEmpty(_scopePath))
-        {
-            parts.Add(_scopePath.Trim('/'));
-        }
-
-        parts.Add(fileName);
-
-        return string.Join("/", parts);
-    }
-
     private string BuildUploadRecordKey(string fileId)
     {
         return $"uploads:{_userId}:{fileId}";
@@ -215,20 +195,6 @@ public class TusS3Store : IFullTusStore, IDisposable
         var record = await _redisService.GetAsync<S3UploadRecordDto>(key);
         if (throwIfNotFound && record is null) throw new NotFoundException("Requested upload not found");
         return record;
-    }
-
-    private AmazonS3Client CreateS3Client(S3StorageConfig config)
-    {
-        var credentials = new BasicAWSCredentials(config.AccessKeyId, config.SecretAccessKey);
-
-        var s3Config = new AmazonS3Config
-        {
-            ServiceURL = config.Endpoint,
-            AuthenticationRegion = config.Region,
-            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED
-        };
-
-        return new AmazonS3Client(credentials, s3Config);
     }
 
     public void Dispose()

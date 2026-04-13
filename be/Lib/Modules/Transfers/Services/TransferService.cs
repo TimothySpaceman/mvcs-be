@@ -1,4 +1,5 @@
 using Lib.Modules.Storages.Services;
+using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.Factories;
 using Microsoft.AspNetCore.Http;
 using tusdotnet.Models;
@@ -17,8 +18,7 @@ public class TransferService(
         string scopePath,
         HttpContext httpContext)
     {
-        var storage = await storageService.GetRawByIdAsync(storageId, userId);
-        var adapter = adapterFactory.Create(storage);
+        var adapter = await GetStorageAdapter(storageId, userId);
         var store = adapter.CreateTusStore(userId, scopePath);
 
         return new DefaultTusConfiguration
@@ -30,5 +30,34 @@ public class TransferService(
                 OnFileCompleteAsync = store.CompleteUploadAsync
             }
         };
+    }
+
+    public async Task<long> GetContentLengthAsync(
+        Guid storageId,
+        Guid userId,
+        string filePath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var adapter = await GetStorageAdapter(storageId, userId);
+        return await adapter.GetContentLengthAsync(filePath, cancellationToken);
+    }
+
+    public async Task<Stream> GetContentAsync(
+        Guid storageId,
+        Guid userId,
+        string filePath,
+        ByteRange? range,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var adapter = await GetStorageAdapter(storageId, userId);
+        return await adapter.GetContentAsync(filePath, range, cancellationToken);
+    }
+
+    private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId, Guid userId)
+    {
+        var storage = await storageService.GetRawByIdAsync(storageId, userId);
+        return adapterFactory.Create(storage);
     }
 }
