@@ -91,7 +91,6 @@ public class S3StorageAdapter : IStorageAdapter
 
     public static string BuildFilePath(
         S3StorageConfig config,
-        Guid userId,
         string scopePath,
         string fileName
     )
@@ -102,8 +101,6 @@ public class S3StorageAdapter : IStorageAdapter
         {
             parts.Add(config.RootPrefix.Trim('/'));
         }
-
-        parts.Add($"users/{userId}");
 
         if (!string.IsNullOrEmpty(scopePath))
         {

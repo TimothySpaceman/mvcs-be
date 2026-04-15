@@ -18,7 +18,7 @@ public class TransferService(
         string scopePath,
         HttpContext httpContext)
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         var store = adapter.CreateTusStore(userId, scopePath);
 
         return new DefaultTusConfiguration
@@ -34,30 +34,28 @@ public class TransferService(
 
     public async Task<long> GetContentLengthAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         CancellationToken cancellationToken = default
     )
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         return await adapter.GetContentLengthAsync(filePath, cancellationToken);
     }
 
     public async Task<Stream> GetContentAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         ByteRange? range,
         CancellationToken cancellationToken = default
     )
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         return await adapter.GetContentAsync(filePath, range, cancellationToken);
     }
 
-    private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId, Guid userId)
+    private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId)
     {
-        var storage = await storageService.GetRawByIdAsync(storageId, userId);
+        var storage = await storageService.GetRawByIdAsync(storageId);
         return adapterFactory.Create(storage);
     }
 }

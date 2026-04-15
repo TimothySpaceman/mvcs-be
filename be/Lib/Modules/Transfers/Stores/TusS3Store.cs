@@ -19,8 +19,13 @@ public class TusS3Store : IFullTusStore, IDisposable
     private readonly IRedisService _redisService;
     private readonly AmazonS3Client _s3Client;
 
-    public TusS3Store(S3StorageConfig config, AmazonS3Client s3Client, Guid userId, string scopePath,
-        IRedisService redisService)
+    public TusS3Store(
+        S3StorageConfig config,
+        AmazonS3Client s3Client,
+        Guid userId,
+        string scopePath,
+        IRedisService redisService
+    )
     {
         _config = config;
         _s3Client = s3Client;
@@ -37,7 +42,7 @@ public class TusS3Store : IFullTusStore, IDisposable
         var request = new InitiateMultipartUploadRequest
         {
             BucketName = _config.Bucket,
-            Key = S3StorageAdapter.BuildFilePath(_config, _userId, _scopePath, fileName)
+            Key = S3StorageAdapter.BuildFilePath(_config, _scopePath, fileName)
         };
         var response = await _s3Client.InitiateMultipartUploadAsync(request, cancellationToken);
 

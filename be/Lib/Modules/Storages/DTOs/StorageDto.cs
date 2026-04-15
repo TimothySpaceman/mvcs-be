@@ -10,17 +10,12 @@ public record StorageDto(
     string TypeLabel,
     bool IsDefault,
     bool IsPublic,
-    StorageAccessType AccessType,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt
 )
 {
-    public static StorageDto FromStorage(Storage storage, Guid requestingUserId)
+    public static StorageDto FromStorage(Storage storage)
     {
-        var accessType = storage.IsPublic
-            ? StorageAccessType.ReadWrite
-            : storage.AccessEntries.First(a => a.UserId == requestingUserId).AccessType;
-
         return new StorageDto(
             storage.Id,
             storage.Name,
@@ -29,7 +24,6 @@ public record StorageDto(
             storage.StorageType.Label,
             storage.IsPublic,
             storage.IsDefault,
-            accessType,
             storage.CreatedAt,
             storage.UpdatedAt
         );

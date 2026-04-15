@@ -15,14 +15,12 @@ public interface ITransferService
 
     public Task<long> GetContentLengthAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         CancellationToken cancellationToken = default
     );
 
     public Task<Stream> GetContentAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         ByteRange? range,
         CancellationToken cancellationToken = default

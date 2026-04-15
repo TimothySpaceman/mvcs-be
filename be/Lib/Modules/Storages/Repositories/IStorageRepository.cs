@@ -5,7 +5,6 @@ namespace Lib.Modules.Storages.Repositories;
 public interface IStorageRepository
 {
     public Task<Storage?> GetByIdAsync(Guid id);
-    public Task<Storage?> GetByIdWithAccessAsync(Guid id, Guid userId);
     public Task<List<Storage>> GetAllByUserIdAsync(Guid userId);
     public Task<bool> ExistsByIdAsync(Guid id);
     public Task AddAsync(Storage storage);
