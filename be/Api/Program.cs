@@ -1,6 +1,7 @@
 using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Auth;
+using Lib.Modules.Projects;
 using Lib.Modules.Storages;
 using Lib.Modules.Transfers;
 using Lib.Modules.Users;
@@ -16,6 +17,7 @@ builder.Services.AddUsersModule();
 builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
 builder.Services.AddStoragesModule();
 builder.Services.AddTransfersModule();
+builder.Services.AddProjectsModule();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

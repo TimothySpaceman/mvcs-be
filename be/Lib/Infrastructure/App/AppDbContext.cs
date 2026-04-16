@@ -1,4 +1,5 @@
 using Lib.Modules.Auth;
+using Lib.Modules.Projects;
 using Lib.Modules.Storages;
 using Lib.Modules.Users;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +11,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.ApplyUsersConfigurations();
         modelBuilder.ApplyAuthConfigurations();
         modelBuilder.ApplyStoragesConfigurations();
+        modelBuilder.ApplyProjectsConfigurations();
     }
 }

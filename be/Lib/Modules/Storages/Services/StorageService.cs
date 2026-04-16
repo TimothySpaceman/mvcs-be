@@ -15,8 +15,8 @@ public class StorageService(IStorageRepository repository) : IStorageService
 
     public async Task<StorageDto?> GetByIdAsync(Guid id)
     {
-        var storage = await GetRawByIdAsync(id);
-        return StorageDto.FromStorage(storage);
+        var storage = await repository.GetByIdAsync(id);
+        return storage is null ? null : StorageDto.FromStorage(storage);
     }
 
     public async Task<Storage> GetRawByIdAsync(Guid id)

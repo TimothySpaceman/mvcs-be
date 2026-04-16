@@ -28,7 +28,7 @@ public class StorageController(IStorageService storageService) : ControllerBase
     public async Task<ActionResult<StorageDto>> GetById(Guid id)
     {
         var (storage, access) = await GetStorageWithAccess(id);
-        return access.CanRead ? Ok(storage) : NotFound(new { message = "Storage not found" });
+        return access.CanRead ? Ok(StorageDto.FromStorage(storage)) : NotFound(new { message = "Storage not found" });
     }
 
     [HttpPost]
