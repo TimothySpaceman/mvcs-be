@@ -64,4 +64,36 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         else repository.Delete(project);
         await repository.SaveChangesAsync();
     }
+
+    public async Task GrantAccessAsync(Guid id, ProjectGrantAccessDto grantDto)
+    {
+        var project = await GetRawByIdAsync(id);
+
+        var existing = project.AccessEntries.FirstOrDefault(a => a.UserId == grantDto.UserId);
+        if (existing is not null)
+        {
+            existing.ChangeAccessType(grantDto.AccessType);
+        }
+        else
+        {
+            var newAccess = ProjectAccess.Create(project.Id, grantDto.UserId, grantDto.AccessType);
+            await repository.AddAccessAsync(newAccess);
+        }
+
+        await repository.SaveChangesAsync();
+    }
+
+    public async Task RevokeAccessAsync(Guid id, Guid targetUserId)
+    {
+        var project = await GetRawByIdAsync(id);
+
+        var access = project.AccessEntries.FirstOrDefault(a => a.UserId == targetUserId);
+        if (access is null)
+        {
+            throw new NotFoundException("Access entry not found");
+        }
+
+        repository.DeleteAccess(access);
+        await repository.SaveChangesAsync();
+    }
 }

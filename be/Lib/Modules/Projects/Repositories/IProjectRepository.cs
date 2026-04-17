@@ -10,5 +10,7 @@ public interface IProjectRepository
     public Task<bool> ExistsByIdAsync(Guid id);
     public Task AddAsync(Project project);
     public void Delete(Project project);
+    public Task AddAccessAsync(ProjectAccess access);
+    public void DeleteAccess(ProjectAccess access);
     public Task SaveChangesAsync();
 }

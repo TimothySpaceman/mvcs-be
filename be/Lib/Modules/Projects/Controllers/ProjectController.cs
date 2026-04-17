@@ -24,9 +24,14 @@ public class ProjectController(IProjectService projectService, IStorageService s
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProjectDto>> GetById(Guid id)
     {
-        var project = await projectService.GetByIdAsync(id);
-        var isVisible = project is not null && (project.IsPublic || project.AuthorId == GetUserId(true));
-        return isVisible ? Ok(project) : NotFound();
+        var project = await projectService.GetRawByIdAsync(id);
+        var userId = GetUserId(true);
+        var isVisible = (
+            project.IsPublic ||
+            project.AuthorId == userId ||
+            project.AccessEntries.Any(a => a.UserId == userId)
+        );
+        return isVisible ? Ok(ProjectDto.FromProject(project)) : NotFound();
     }
 
     [Authorize]

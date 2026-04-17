@@ -13,6 +13,9 @@ public class Project
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
 
+    public IReadOnlyCollection<ProjectAccess> AccessEntries => _accessEntries.AsReadOnly();
+    private readonly List<ProjectAccess> _accessEntries = [];
+
     private Project()
     {
     }

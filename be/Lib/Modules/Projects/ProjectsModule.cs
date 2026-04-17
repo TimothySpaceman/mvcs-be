@@ -17,6 +17,7 @@ public static class ProjectsModule
 
     public static void ApplyProjectsConfigurations(this ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new ProjectAccessConfiguration());
         modelBuilder.ApplyConfiguration(new ProjectConfiguration());
     }
 }

@@ -51,6 +51,11 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasForeignKey(c => c.StorageId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasMany(s => s.AccessEntries)
+            .WithOne(a => a.Project)
+            .HasForeignKey(a => a.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasQueryFilter(p => p.DeletedAt == null);
     }
 }

@@ -1,16 +1,16 @@
-using Lib.Modules.Storages.Entities;
+using Lib.Modules.Projects.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Lib.Modules.Storages.Configurations;
+namespace Lib.Modules.Projects.Configurations;
 
-public class StorageAccessConfiguration : IEntityTypeConfiguration<StorageAccess>
+public class ProjectAccessConfiguration : IEntityTypeConfiguration<ProjectAccess>
 {
-    public void Configure(EntityTypeBuilder<StorageAccess> builder)
+    public void Configure(EntityTypeBuilder<ProjectAccess> builder)
     {
-        builder.ToTable("storage_access");
+        builder.ToTable("project_access");
 
-        builder.HasKey(a => new { a.StorageId, a.UserId });
+        builder.HasKey(a => new { a.ProjectId, a.UserId });
 
         builder.Property(a => a.AccessType)
             .IsRequired()

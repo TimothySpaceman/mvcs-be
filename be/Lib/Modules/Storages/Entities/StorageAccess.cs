@@ -2,9 +2,9 @@ namespace Lib.Modules.Storages.Entities;
 
 public enum StorageAccessType
 {
-    Owner = 0,
+    ReadOnly = 0,
     ReadWrite = 1,
-    ReadOnly = 2
+    Owner = 2,
 }
 
 public class StorageAccess

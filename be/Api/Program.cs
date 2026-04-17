@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Auth;
@@ -19,7 +20,10 @@ builder.Services.AddStoragesModule();
 builder.Services.AddTransfersModule();
 builder.Services.AddProjectsModule();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
