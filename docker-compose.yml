@@ -11,12 +11,14 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - api
-    networks: [serving]
+    networks: [ serving ]
   
   api:
     build:
       context: ./be
       dockerfile: Api/Dockerfile
+      args:
+        INTERNAL_NUGET_HOST: ${INTERNAL_NUGET_HOST}
     container_name: api
     restart: unless-stopped
     environment:
@@ -32,15 +34,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks: [serving, internal]
+    networks: [ serving, internal ]
   
   postgres:
     image: postgres:17-alpine
     container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER} 
-      POSTGRES_PASSWORD: ${POSTGRES_PASS} 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_APP_USER: ${POSTGRES_APP_USER}
       POSTGRES_APP_PASS: ${POSTGRES_APP_PASS}
@@ -54,10 +56,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [internal]
-    
-  flyway_app: 
+    networks: [ internal ]
+  
+  flyway_app:
     image: flyway/flyway:12-alpine
+    container_name: flyway_app
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,7 +72,23 @@ services:
       -password=${POSTGRES_APP_PASS}
       -locations=filesystem:/flyway/sql
       migrate
-    networks: [internal]
+    networks: [ internal ]
+  
+  flyway_vcs:
+    image: flyway/flyway:12-alpine
+    container_name: flyway_vcs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./be/Lib/Infrastructure/Vcs/Migrations/Sql:/flyway/sql
+    command: >
+      -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_VCS}
+      -user=${POSTGRES_APP_USER} 
+      -password=${POSTGRES_APP_PASS}
+      -locations=filesystem:/flyway/sql
+      migrate
+    networks: [ internal ]
 
   redis:
     image: redis:8.6.2-alpine
@@ -81,18 +100,18 @@ services:
       - redis_data:/data
       - ./redis/redis.conf:/etc/redis/redis.conf.template:ro
       - ./redis/entrypoint.sh:/entrypoint.sh:ro
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    entrypoint: [ "/bin/sh", "/entrypoint.sh" ]
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASS}", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [internal]
+    networks: [ internal ]
 
 volumes:
   postgres_data:
   redis_data:
-    
+
 networks:
   serving:
   internal:

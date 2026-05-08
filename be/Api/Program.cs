@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
+using Lib.Infrastructure.Vcs;
 using Lib.Modules.Auth;
 using Lib.Modules.Projects;
 using Lib.Modules.Storages;
@@ -12,6 +13,7 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAppInfrastructure(builder.Configuration);
+builder.Services.AddVcsInfrastructure(builder.Configuration);
 builder.Services.AddRedis(builder.Configuration);
 
 builder.Services.AddUsersModule();
