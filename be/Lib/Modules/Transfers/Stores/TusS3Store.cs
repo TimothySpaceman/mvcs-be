@@ -1,11 +1,11 @@
 using System.IO.Pipelines;
-using System.Text;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.ConfigModels;
 using Lib.Modules.Transfers.DTOs;
+using Lib.Modules.Transfers.Helpers;
 using Lib.Shared.Exceptions;
 using tusdotnet.Models.Configuration;
 
@@ -36,7 +36,7 @@ public class TusS3Store : IFullTusStore, IDisposable
 
     public async Task<string> CreateFileAsync(long uploadLength, string metadata, CancellationToken cancellationToken)
     {
-        var parsedMetadata = ParseMetadata(metadata);
+        var parsedMetadata = TusMetadataHelper.ParseMetadata(metadata);
         var fileName = parsedMetadata.TryGetValue("filename", out var fn) ? fn : Guid.NewGuid().ToString();
 
         var request = new InitiateMultipartUploadRequest
@@ -159,24 +159,6 @@ public class TusS3Store : IFullTusStore, IDisposable
         await _s3Client.CompleteMultipartUploadAsync(request, ctx.CancellationToken);
         await _redisService.DeleteAsync(BuildUploadRecordKey(ctx.FileId));
         await _redisService.DeleteAsync(BuildUploadPartsKey(ctx.FileId));
-    }
-
-    private static string DecodeMetadataValue(string base64Value)
-    {
-        var bytes = Convert.FromBase64String(base64Value);
-        return Encoding.UTF8.GetString(bytes);
-    }
-
-    private static Dictionary<string, string> ParseMetadata(string metadata)
-    {
-        return metadata
-            .Split(',')
-            .Select(pair => pair.Trim().Split(' '))
-            .Where(parts => parts.Length == 2)
-            .ToDictionary(
-                parts => parts[0],
-                parts => DecodeMetadataValue(parts[1])
-            );
     }
 
     private string BuildUploadRecordKey(string fileId)

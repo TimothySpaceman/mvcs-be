@@ -7,6 +7,7 @@ using Lib.Modules.Projects;
 using Lib.Modules.Storages;
 using Lib.Modules.Transfers;
 using Lib.Modules.Users;
+using Lib.Modules.Vcs;
 using Lib.Shared.Middleware;
 using Scalar.AspNetCore;
 
@@ -21,6 +22,7 @@ builder.Services.AddAuthModule(builder.Configuration, builder.Environment);
 builder.Services.AddStoragesModule();
 builder.Services.AddTransfersModule();
 builder.Services.AddProjectsModule();
+builder.Services.AddVcsModule();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -57,5 +59,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapVcsModule();
 
 app.Run();

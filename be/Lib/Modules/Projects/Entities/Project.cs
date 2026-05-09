@@ -66,4 +66,22 @@ public class Project
     {
         DeletedAt = DateTimeOffset.UtcNow;
     }
+
+    public bool CanSee(Guid? userId = null)
+    {
+        return userId is null ? IsPublic : CanRead(userId.Value);
+    }
+
+    public bool CanRead(Guid userId)
+    {
+        return IsPublic ||
+               AuthorId == userId ||
+               AccessEntries.Any(a => a.UserId == userId);
+    }
+
+    public bool CanWrite(Guid userId)
+    {
+        return AuthorId == userId ||
+               AccessEntries.Any(a => a.UserId == userId && a.CanWrite);
+    }
 }

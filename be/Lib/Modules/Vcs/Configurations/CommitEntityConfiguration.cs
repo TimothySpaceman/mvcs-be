@@ -25,11 +25,10 @@ public class CommitEntityConfiguration : IEntityTypeConfiguration<CommitEntity>
         builder.HasKey(c => c.Id);
 
         builder.Property(c => c.Id)
-            .IsRequired()
-            .HasMaxLength(16);
+            .IsRequired();
 
         builder.Property(c => c.ParentId)
-            .HasMaxLength(16);
+            .IsRequired(false);
 
         builder.Property(c => c.Message)
             .IsRequired()

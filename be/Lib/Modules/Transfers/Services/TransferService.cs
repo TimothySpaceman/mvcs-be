@@ -1,7 +1,6 @@
 using Lib.Modules.Storages.Services;
 using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.Factories;
-using Microsoft.AspNetCore.Http;
 using tusdotnet.Models;
 using tusdotnet.Models.Configuration;
 
@@ -15,8 +14,8 @@ public class TransferService(
     public async Task<DefaultTusConfiguration> GetTusConfigurationAsync(
         Guid storageId,
         Guid userId,
-        string scopePath,
-        HttpContext httpContext)
+        string scopePath
+        )
     {
         var adapter = await GetStorageAdapter(storageId);
         var store = adapter.CreateTusStore(userId, scopePath);

@@ -26,12 +26,7 @@ public class ProjectController(IProjectService projectService, IStorageService s
     {
         var project = await projectService.GetRawByIdAsync(id);
         var userId = GetUserId(true);
-        var isVisible = (
-            project.IsPublic ||
-            project.AuthorId == userId ||
-            project.AccessEntries.Any(a => a.UserId == userId)
-        );
-        return isVisible ? Ok(ProjectDto.FromProject(project)) : NotFound();
+        return project.CanSee(userId) ? Ok(ProjectDto.FromProject(project)) : NotFound();
     }
 
     [Authorize]

@@ -13,8 +13,7 @@ public class BlobMetadataEntityConfiguration : IEntityTypeConfiguration<BlobMeta
         builder.HasKey(b => new { b.Id, b.ProjectId });
 
         builder.Property(b => b.Id)
-            .IsRequired()
-            .HasMaxLength(16);
+            .IsRequired();
 
         builder.HasIndex(b => b.ProjectId);
     }

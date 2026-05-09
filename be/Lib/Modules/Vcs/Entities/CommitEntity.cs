@@ -1,13 +1,14 @@
 using System.Collections.Immutable;
 using Core.FileChanges;
+using Core.Storage;
 
 namespace Lib.Modules.Vcs.Entities;
 
 public class CommitEntity
 {
-    public byte[] Id { get; private set; } = null!;
+    public HashId Id { get; private set; }
     public Guid ProjectId { get; private set; }
-    public byte[]? ParentId { get; private set; }
+    public HashId? ParentId { get; private set; }
     public string Message { get; private set; } = null!;
     public DateTimeOffset CreatedAt { get; private set; }
     public UserIdentityEntity Author { get; private set; } = null!;
@@ -18,9 +19,9 @@ public class CommitEntity
     }
 
     public static CommitEntity Create(
-        byte[] id,
+        HashId id,
         Guid projectId,
-        byte[]? parentId,
+        HashId? parentId,
         string message,
         DateTimeOffset createdAt,
         UserIdentityEntity author,

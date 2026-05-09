@@ -11,4 +11,9 @@ public class VcsDbContext(DbContextOptions<VcsDbContext> options) : DbContext(op
 
         modelBuilder.ApplyVcsConfigurations();
     }
+    
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.ApplyVcsConventions();
+    }
 }

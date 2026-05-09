@@ -3,6 +3,7 @@ using System;
 using Lib.Infrastructure.Vcs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
 {
     [DbContext(typeof(VcsDbContext))]
-    partial class VcsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509154336_hex_hashes")]
+    partial class hex_hashes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
