@@ -1,7 +1,7 @@
 using Core.Storage;
 using Lib.Modules.Vcs.Configurations;
+using Lib.Modules.Vcs.Controllers;
 using Lib.Modules.Vcs.Converters;
-using Lib.Modules.Vcs.Endpoints;
 using Lib.Modules.Vcs.Repository;
 using Lib.Modules.Vcs.Services;
 using Microsoft.AspNetCore.Builder;
@@ -22,7 +22,7 @@ public static class VcsModule
 
     public static WebApplication MapVcsModule(this WebApplication app)
     {
-        app.MapTus("/api/projects/{projectId}/blobs/uploads", BlobTusEndpoints.BlobUploads);
+        app.MapTus("/api/projects/{projectId}/blobs/uploads", BlobController.BlobUploads);
         return app;
     }
 
@@ -31,7 +31,7 @@ public static class VcsModule
         modelBuilder.ApplyConfiguration(new BlobMetadataEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
     }
-    
+
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder

@@ -67,16 +67,11 @@ public class Project
         DeletedAt = DateTimeOffset.UtcNow;
     }
 
-    public bool CanSee(Guid? userId = null)
+    public bool CanRead(Guid? userId)
     {
-        return userId is null ? IsPublic : CanRead(userId.Value);
-    }
-
-    public bool CanRead(Guid userId)
-    {
-        return IsPublic ||
-               AuthorId == userId ||
-               AccessEntries.Any(a => a.UserId == userId);
+        if (IsPublic) return true;
+        if (userId is null) return false;
+        return AuthorId == userId || AccessEntries.Any(a => a.UserId == userId);
     }
 
     public bool CanWrite(Guid userId)
