@@ -2,6 +2,7 @@ using Core.Storage;
 using Lib.Modules.Vcs.Configurations;
 using Lib.Modules.Vcs.Controllers;
 using Lib.Modules.Vcs.Converters;
+using Lib.Modules.Vcs.Factories;
 using Lib.Modules.Vcs.Repository;
 using Lib.Modules.Vcs.Services;
 using Microsoft.AspNetCore.Builder;
@@ -17,6 +18,7 @@ public static class VcsModule
     {
         services.AddScoped<IBlobMetadataRepository, BlobMetadataRepository>();
         services.AddScoped<IBlobTransferService, BlobTransferService>();
+        services.AddScoped<ICommitStoreFactory, CommitStoreFactory>();
         return services;
     }
 
