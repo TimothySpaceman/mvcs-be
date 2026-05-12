@@ -19,6 +19,7 @@ public static class VcsModule
         services.AddScoped<IBlobMetadataRepository, BlobMetadataRepository>();
         services.AddScoped<IBlobTransferService, BlobTransferService>();
         services.AddScoped<ICommitStoreFactory, CommitStoreFactory>();
+        services.AddScoped<IRefRepository, RefRepository>();
         return services;
     }
 
@@ -32,6 +33,7 @@ public static class VcsModule
     {
         modelBuilder.ApplyConfiguration(new BlobMetadataEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new RefEntityConfiguration());
     }
 
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)
