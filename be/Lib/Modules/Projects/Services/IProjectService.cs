@@ -11,6 +11,7 @@ public interface IProjectService
     public Task<ProjectDto> CreateAsync(Guid authorId, ProjectCreateDto createDto);
     public Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto updateDto);
     public Task InitializeAsync(Guid id);
+    public Task InitializeAsync(Project project);
     public Task DeleteAsync(Guid id, bool soft = true);
     public Task GrantAccessAsync(Guid id, ProjectGrantAccessDto grantDto);
     public Task RevokeAccessAsync(Guid id, Guid targetUserId);

@@ -53,6 +53,11 @@ public class ProjectService(IProjectRepository repository) : IProjectService
     public async Task InitializeAsync(Guid id)
     {
         var project = await GetRawByIdAsync(id);
+        await InitializeAsync(project);
+    }
+
+    public async Task InitializeAsync(Project project)
+    {
         project.Initialize();
         await repository.SaveChangesAsync();
     }
