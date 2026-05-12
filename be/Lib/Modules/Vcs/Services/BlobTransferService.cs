@@ -1,9 +1,9 @@
+using Core.Blobs;
 using Core.Storage;
 using Lib.Modules.Projects.Entities;
 using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.Helpers;
 using Lib.Modules.Transfers.Services;
-using Lib.Modules.Vcs.Entities;
 using Lib.Modules.Vcs.Repository;
 using Lib.Shared.Exceptions;
 using tusdotnet.Interfaces;
@@ -43,8 +43,8 @@ public class BlobTransferService(
         }
 
         var length = long.Parse(parsed["length"]);
-        var blobMetadata = BlobMetadataEntity.Create(blobId, projectId, length);
-        await blobMetadataRepository.AddAsync(blobMetadata);
+        var blobMetadata = new BlobMetadata(blobId, length);
+        await blobMetadataRepository.AddAsync(blobMetadata, projectId);
         await blobMetadataRepository.SaveChangesAsync();
     }
 

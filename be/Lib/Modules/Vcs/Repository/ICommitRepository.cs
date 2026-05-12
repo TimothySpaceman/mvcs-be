@@ -1,46 +1,44 @@
-using Core.Blobs;
+using Core.Commits;
 using Core.Storage;
 
 namespace Lib.Modules.Vcs.Repository;
 
-public interface IBlobMetadataRepository
+public interface ICommitRepository
 {
-    public Task<BlobMetadata?> GetByIdAsync(
+    public Task<bool> HasAsync(
+        Guid projectId,
         HashId id,
-        Guid projectId,
         CancellationToken cancellationToken = default
     );
 
-    public Task<bool> ExistsByIdAsync(
+    public Task<Commit?> GetAsync(
+        Guid projectId,
         HashId id,
-        Guid projectId,
         CancellationToken cancellationToken = default
     );
 
-    public Task<bool> AllExistAsync(
-        IEnumerable<HashId> ids,
-        Guid projectId,
-        CancellationToken cancellationToken = default
-    );
-
-    public Task<List<BlobMetadata>> GetAllByProjectIdAsync(
+    public Task<Dictionary<HashId, Commit>> GetAllAsync(
         Guid projectId,
         CancellationToken cancellationToken = default
     );
 
     public Task AddAsync(
-        BlobMetadata blob,
         Guid projectId,
+        Commit commit,
         CancellationToken cancellationToken = default
     );
 
-    public Task DeleteAsync(
+    public Task AddRangeAsync(
+        Guid projectId,
+        IEnumerable<Commit> commits,
+        CancellationToken cancellationToken = default
+    );
+
+    public Task<bool> RemoveAsync(
+        Guid projectId,
         HashId id,
-        Guid projectId,
         CancellationToken cancellationToken = default
     );
 
-    public Task SaveChangesAsync(
-        CancellationToken cancellationToken = default
-    );
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

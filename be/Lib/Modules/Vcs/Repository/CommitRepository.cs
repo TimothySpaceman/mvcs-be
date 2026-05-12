@@ -7,15 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Lib.Modules.Vcs.Repository;
 
-public class CommitRepository(VcsDbContext db, Guid projectId) : ICommitStore
+public class CommitRepository(VcsDbContext db) : ICommitRepository
 {
-    public Task<bool> HasAsync(HashId id, CancellationToken cancellationToken = default)
+    public Task<bool> HasAsync(
+        Guid projectId,
+        HashId id,
+        CancellationToken cancellationToken = default
+    )
     {
         return db.Set<CommitEntity>()
             .AnyAsync(c => c.Id == id && c.ProjectId == projectId, cancellationToken);
     }
 
-    public async Task<Commit?> GetAsync(HashId id, CancellationToken cancellationToken = default)
+    public async Task<Commit?> GetAsync(
+        Guid projectId,
+        HashId id,
+        CancellationToken cancellationToken = default
+    )
     {
         var entity = await db.Set<CommitEntity>()
             .AsNoTracking()
@@ -24,7 +32,10 @@ public class CommitRepository(VcsDbContext db, Guid projectId) : ICommitStore
         return entity?.ToDomain();
     }
 
-    public async Task<Dictionary<HashId, Commit>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<Dictionary<HashId, Commit>> GetAllAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default
+    )
     {
         return await db.Set<CommitEntity>()
             .AsNoTracking()
@@ -32,7 +43,11 @@ public class CommitRepository(VcsDbContext db, Guid projectId) : ICommitStore
             .ToDictionaryAsync(c => c.Id, c => c.ToDomain(), cancellationToken);
     }
 
-    public async Task AddAsync(Commit commit, CancellationToken cancellationToken = default)
+    public async Task AddAsync(
+        Guid projectId,
+        Commit commit,
+        CancellationToken cancellationToken = default
+    )
     {
         var exists = await db.Set<CommitEntity>()
             .AnyAsync(c => c.Id == commit.Id && c.ProjectId == projectId, cancellationToken);
@@ -41,15 +56,35 @@ public class CommitRepository(VcsDbContext db, Guid projectId) : ICommitStore
 
         var entity = commit.ToEntity(projectId);
         await db.Set<CommitEntity>().AddAsync(entity, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> RemoveAsync(HashId id, CancellationToken cancellationToken = default)
+    public async Task AddRangeAsync(
+        Guid projectId,
+        IEnumerable<Commit> commits,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entities = commits.Select(c => c.ToEntity(projectId)).ToList();
+        await db.Set<CommitEntity>().AddRangeAsync(entities, cancellationToken);
+    }
+
+    public async Task<bool> RemoveAsync(
+        Guid projectId,
+        HashId id,
+        CancellationToken cancellationToken = default
+    )
     {
         var deleted = await db.Set<CommitEntity>()
             .Where(c => c.Id == id && c.ProjectId == projectId)
             .ExecuteDeleteAsync(cancellationToken);
 
         return deleted > 0;
+    }
+    
+    public Task SaveChangesAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        return db.SaveChangesAsync(cancellationToken);
     }
 }
