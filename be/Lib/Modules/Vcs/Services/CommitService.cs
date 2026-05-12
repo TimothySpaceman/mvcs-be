@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using Core.Commits;
 using Core.Exceptions;
 using Core.FileChanges;
@@ -22,11 +21,11 @@ public class CommitService(ICommitRepository commitRepository) : ICommitService
         return commitRepository.GetAsync(projectId, commitId, cancellationToken);
     }
 
-    public async IAsyncEnumerable<Commit> GetChainAsync(
+    public async Task<IEnumerable<Commit>> GetChainAsync(
         Guid projectId,
         HashId toId,
         HashId? fromId = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default
     )
     {
         var allCommits = await commitRepository.GetAllAsync(projectId, cancellationToken);
@@ -41,29 +40,25 @@ public class CommitService(ICommitRepository commitRepository) : ICommitService
             throw new CommitNotFoundException($"Starting commit {fromId} not found");
         }
 
+        var chain = new List<Commit>();
         while (true)
         {
-            yield return current;
+            chain.Add(current);
 
             if (current.Id == fromId || current.ParentId is null) break;
 
             var parentId = current.ParentId.Value;
             if (!allCommits.TryGetValue(parentId, out current!))
-            {
                 throw new CommitNotFoundException($"Parent commit {parentId} not found");
-            }
         }
+
+        return chain;
     }
 
     public async Task<Snapshot> GetSnapshotAsync(Guid projectId, HashId commitId,
         CancellationToken cancellationToken = default)
     {
-        var chain = new List<Commit>();
-        await foreach (var commit in GetChainAsync(projectId, commitId, null, cancellationToken))
-        {
-            chain.Add(commit);
-        }
-
+        var chain = (await GetChainAsync(projectId, commitId, null, cancellationToken)).ToList();
         chain.Reverse();
 
         var files = new Dictionary<string, FileSnapshot>();

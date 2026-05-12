@@ -17,7 +17,7 @@ public interface ICommitService
         CancellationToken cancellationToken = default
     );
 
-    public IAsyncEnumerable<Commit> GetChainAsync(
+    public Task<IEnumerable<Commit>> GetChainAsync(
         Guid projectId,
         HashId toId,
         HashId? fromId = null,
