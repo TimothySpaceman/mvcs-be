@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Core.Storage;
 using Lib.Modules.Projects.Services;
 using Lib.Modules.Transfers.Adapters;
+using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Services;
 using Lib.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -28,15 +28,7 @@ public class BlobController(
         CancellationToken cancellationToken
     )
     {
-        HashId blobHashId;
-        try
-        {
-            blobHashId = new HashId(Convert.FromHexString(blobId));
-        }
-        catch (FormatException ex)
-        {
-            throw new BadRequestException("Blob id is not valid hex string", ex);
-        }
+        var blobHashId = HashIdHelper.Parse(blobId);
 
         var userId = GetCurrentUserId();
         var project = await projectService.GetRawByIdAsync(projectId);

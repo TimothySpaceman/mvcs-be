@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Core.Storage;
 using Lib.Modules.Projects.Services;
 using Lib.Modules.Vcs.DTOs;
+using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,8 @@ public class VcsController(
         CancellationToken cancellationToken
     )
     {
+        var fromHashId = HashIdHelper.ParseNullable(fromId);
+
         var project = await projectService.GetRawByIdAsync(projectId);
         var userId = GetCurrentUserId();
         if (!project.CanRead(userId))
@@ -32,22 +35,6 @@ public class VcsController(
             {
                 Message = "Project not found"
             });
-        }
-
-        HashId? fromHashId = null;
-        if (fromId is not null)
-        {
-            try
-            {
-                fromHashId = new HashId(Convert.FromHexString(fromId));
-            }
-            catch (FormatException)
-            {
-                return BadRequest(new
-                {
-                    Message = "Provided starting id is not valid hex string"
-                });
-            }
         }
 
         var refValue = await refService.GetRefValueAsync(projectId, refName, cancellationToken);
@@ -61,6 +48,55 @@ public class VcsController(
 
         var chain = await commitService.GetChainAsync(projectId, refValue.Value, fromHashId, cancellationToken);
         return Ok(new PullResultDto(chain.Select(CommitDto.FromDomain)));
+    }
+
+    [HttpGet("{projectId:guid}/vcs/snapshot")]
+    public async Task<ActionResult<SnapshotDto>> GetSnapshot(
+        [FromRoute] Guid projectId,
+        [FromQuery] string? commitId,
+        [FromQuery] string? refName,
+        CancellationToken cancellationToken
+    )
+    {
+        if (commitId is null && refName is null)
+        {
+            return BadRequest(new
+            {
+                Message = "Commit id or ref name is required"
+            });
+        }
+
+        var project = await projectService.GetRawByIdAsync(projectId);
+        var userId = GetCurrentUserId();
+        if (!project.CanRead(userId))
+        {
+            return NotFound(new
+            {
+                Message = "Project not found"
+            });
+        }
+
+        HashId targetId;
+        if (commitId is not null)
+        {
+            targetId = HashIdHelper.Parse(commitId);
+        }
+        else
+        {
+            var refValue = await refService.GetRefValueAsync(projectId, refName!, cancellationToken);
+            if (refValue is null)
+            {
+                return NotFound(new
+                {
+                    Message = "Ref not found"
+                });
+            }
+
+            targetId = refValue.Value;
+        }
+
+        var snapshot = await commitService.GetSnapshotAsync(projectId, targetId, cancellationToken);
+        return Ok(SnapshotDto.FromDomain(snapshot));
     }
 
     private Guid? GetCurrentUserId()
