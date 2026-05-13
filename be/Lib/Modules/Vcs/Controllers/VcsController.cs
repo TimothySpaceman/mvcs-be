@@ -35,7 +35,7 @@ public class VcsController(
         {
             return NotFound(new
             {
-                Message = "Project not found"
+                message = "Project not found"
             });
         }
 
@@ -44,7 +44,7 @@ public class VcsController(
         {
             return NotFound(new
             {
-                Message = "Ref not found"
+                message = "Ref not found"
             });
         }
 
@@ -64,7 +64,7 @@ public class VcsController(
         {
             return BadRequest(new
             {
-                Message = "Commit id or ref name is required"
+                message = "Commit id or ref name is required"
             });
         }
 
@@ -74,7 +74,7 @@ public class VcsController(
         {
             return NotFound(new
             {
-                Message = "Project not found"
+                message = "Project not found"
             });
         }
 
@@ -90,7 +90,7 @@ public class VcsController(
             {
                 return NotFound(new
                 {
-                    Message = "Ref not found"
+                    message = "Ref not found"
                 });
             }
 
@@ -115,7 +115,7 @@ public class VcsController(
         {
             return NotFound(new
             {
-                Message = "Project not found"
+                message = "Project not found"
             });
         }
 
@@ -129,7 +129,7 @@ public class VcsController(
         {
             return Conflict(new
             {
-                Message = "Ref values mismatch detected"
+                message = "Ref values mismatch detected"
             });
         }
 
