@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HealthChecks.UI.Client;
 using Lib.Infrastructure.App;
 using Lib.Infrastructure.Redis;
 using Lib.Infrastructure.Vcs;
@@ -9,6 +10,7 @@ using Lib.Modules.Transfers;
 using Lib.Modules.Users;
 using Lib.Modules.Vcs;
 using Lib.Shared.Middleware;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +43,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>()
+    .AddDbContextCheck<VcsDbContext>()
+    .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -60,5 +67,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapVcsModule();
+app.MapHealthChecks("/api/health", new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    })
+    .AllowAnonymous()
+    .WithTags("Health");
 
 app.Run();

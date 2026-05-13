@@ -1,5 +1,7 @@
+using Lib.Modules.Storages.Entities;
 using Lib.Modules.Storages.Services;
 using Lib.Modules.Transfers.Adapters;
+using Lib.Modules.Transfers.DTOs;
 using Lib.Modules.Transfers.Factories;
 using tusdotnet.Models;
 using tusdotnet.Models.Configuration;
@@ -15,7 +17,7 @@ public class TransferService(
         Guid storageId,
         Guid userId,
         string scopePath
-        )
+    )
     {
         var adapter = await GetStorageAdapter(storageId);
         var store = adapter.CreateTusStore(userId, scopePath);
@@ -52,9 +54,32 @@ public class TransferService(
         return await adapter.GetContentAsync(filePath, range, cancellationToken);
     }
 
+    public async Task<StorageHealthDto> GetStorageHealthAsync(
+        Guid storageId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var adapter = await GetStorageAdapter(storageId);
+        return await adapter.GetStorageHealthAsync(cancellationToken);
+    }
+    
+    public async Task<StorageHealthDto> GetStorageHealthAsync(
+        Storage storage,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var adapter = GetStorageAdapter(storage);
+        return await adapter.GetStorageHealthAsync(cancellationToken);
+    }
+
     private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId)
     {
         var storage = await storageService.GetRawByIdAsync(storageId);
+        return GetStorageAdapter(storage);
+    }
+
+    private IStorageAdapter GetStorageAdapter(Storage storage)
+    {
         return adapterFactory.Create(storage);
     }
 }

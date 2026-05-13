@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Lib.Modules.Storages.Controllers;
 
-record Access(StorageAccess? AccessRecord, bool CanRead, bool CanWrite, bool IsOwner);
-
 [Authorize]
 [ApiController]
 [Route("api/storages")]
@@ -19,7 +17,7 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<StorageDto>>> GetAll()
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
         var result = await storageService.GetAllByUserIdAsync(userId);
         return Ok(result);
     }
@@ -27,14 +25,19 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<StorageDto>> GetById(Guid id)
     {
-        var (storage, access) = await GetStorageWithAccess(id);
-        return access.CanRead ? Ok(StorageDto.FromStorage(storage)) : NotFound(new { message = "Storage not found" });
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+        if (storage.CanRead(userId)) return Ok(StorageDto.FromStorage(storage));
+        return NotFound(new
+        {
+            message = "Storage not found"
+        });
     }
 
     [HttpPost]
     public async Task<ActionResult<StorageDto>> Create([FromBody] StorageCreateDto dto)
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
         var result = await storageService.CreateAsync(userId, dto);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
@@ -42,10 +45,11 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<StorageDto>> Update(Guid id, [FromBody] StorageUpdateDto dto)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot edit this storage" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot edit this storage" });
 
         var updated = await storageService.UpdateAsync(id, dto);
         return Ok(updated);
@@ -54,10 +58,11 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot delete this storage config" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot delete this storage" });
 
         await storageService.DeleteAsync(id);
         return NoContent();
@@ -66,10 +71,11 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpGet("{id:guid}/config")]
     public async Task<ActionResult<StorageConfigDto>> GetConfig(Guid id)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot access this storage config" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot configure this storage" });
 
         var result = await storageService.GetConfigAsync(id);
         return Ok(result);
@@ -78,10 +84,11 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpPatch("{id:guid}/config")]
     public async Task<ActionResult> UpdateConfig(Guid id, [FromBody] StorageUpdateConfigDto dto)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot edit this storage config" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot configure this storage" });
 
         await storageService.UpdateConfigAsync(id, dto);
         return NoContent();
@@ -90,10 +97,12 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpPut("{id:guid}/access/{targetUserId:guid}")]
     public async Task<ActionResult> GrantAccess(Guid id, Guid targetUserId, [FromBody] StorageGrantAccessDto dto)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot manage access for this project" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId))
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
 
         await storageService.GrantAccessAsync(id, dto with { UserId = targetUserId });
         return NoContent();
@@ -102,16 +111,18 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpDelete("{id:guid}/access/{targetUserId:guid}")]
     public async Task<ActionResult> RevokeAccess(Guid id, Guid targetUserId)
     {
-        var (_, access) = await GetStorageWithAccess(id);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
 
-        if (!access.CanRead) return NotFound();
-        if (!access.IsOwner) return StatusCode(403, new { message = "You cannot manage access for this project" });
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId))
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
 
         await storageService.RevokeAccessAsync(id, targetUserId);
         return NoContent();
     }
 
-    private Guid GetUserId()
+    private Guid GetCurrentUserId()
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)
                     ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
@@ -120,20 +131,8 @@ public class StorageController(IStorageService storageService) : ControllerBase
         return Guid.Parse(claim.Value);
     }
 
-    private async Task<(Storage, Access)> GetStorageWithAccess(Guid storageId)
+    private Task<Storage> GetStorage(Guid storageId)
     {
-        var userId = GetUserId();
-        var storage = await storageService.GetRawByIdAsync(storageId);
-        var accessRecord = storage.AccessEntries.FirstOrDefault(a => a.UserId == userId);
-
-        var hasAccess = accessRecord is not null;
-        var access = new Access(
-            accessRecord,
-            (hasAccess && accessRecord!.CanRead) || storage.IsPublic,
-            hasAccess && accessRecord!.CanWrite,
-            hasAccess && accessRecord!.IsOwner
-        );
-
-        return (storage, access);
+        return storageService.GetRawByIdAsync(storageId);
     }
 }

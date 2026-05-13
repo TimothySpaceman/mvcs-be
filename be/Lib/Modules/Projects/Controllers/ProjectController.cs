@@ -17,7 +17,7 @@ public class ProjectController(IProjectService projectService, IStorageService s
     [HttpGet]
     public async Task<ActionResult<List<ProjectDto>>> GetMine()
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
         return await projectService.GetAllByAuthorIdAsync(userId);
     }
 
@@ -25,15 +25,16 @@ public class ProjectController(IProjectService projectService, IStorageService s
     public async Task<ActionResult<ProjectDto>> GetById(Guid id)
     {
         var project = await projectService.GetRawByIdAsync(id);
-        var userId = GetUserId(true);
-        return project.CanRead(userId) ? Ok(ProjectDto.FromProject(project)) : NotFound();
+        var userId = GetCurrentUserId(true);
+        if (project.CanRead(userId)) return Ok(ProjectDto.FromProject(project));
+        return NotFound(new { message = "Project not found" });
     }
 
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectCreateDto createDto)
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
 
         var storage = await storageService.GetRawByIdAsync(createDto.StorageId);
         if (storage.IsPublic) return await projectService.CreateAsync(userId, createDto);
@@ -57,7 +58,13 @@ public class ProjectController(IProjectService projectService, IStorageService s
     public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectUpdateDto dto)
     {
         var project = await projectService.GetByIdAsync(id);
-        if (project is null || project.AuthorId != GetUserId()) return NotFound();
+        if (project is null || project.AuthorId != GetCurrentUserId())
+        {
+            return NotFound(new
+            {
+                message = "Project not found"
+            });
+        }
 
         var updated = await projectService.UpdateAsync(id, dto);
         return Ok(updated);
@@ -68,17 +75,21 @@ public class ProjectController(IProjectService projectService, IStorageService s
     public async Task<ActionResult<ProjectDto>> Delete(Guid id)
     {
         var project = await projectService.GetByIdAsync(id);
-        if (project is null || project.AuthorId != GetUserId()) return NotFound();
+        if (project is null || project.AuthorId != GetCurrentUserId())
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+
         await projectService.DeleteAsync(id);
         return NoContent();
     }
 
-    private Guid GetUserId()
+    private Guid GetCurrentUserId()
     {
-        return (Guid)GetUserId(false)!;
+        return (Guid)GetCurrentUserId(false)!;
     }
 
-    private Guid? GetUserId(bool allowAnonymous)
+    private Guid? GetCurrentUserId(bool allowAnonymous)
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)
                     ?? User.FindFirst(JwtRegisteredClaimNames.Sub);

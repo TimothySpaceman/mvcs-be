@@ -1,3 +1,4 @@
+using Lib.Modules.Transfers.DTOs;
 using Lib.Modules.Transfers.Stores;
 
 namespace Lib.Modules.Transfers.Adapters;
@@ -16,4 +17,6 @@ public interface IStorageAdapter
         ByteRange? range,
         CancellationToken cancellationToken = default
     );
+
+    public Task<StorageHealthDto> GetStorageHealthAsync(CancellationToken cancellationToken = default);
 }

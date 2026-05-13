@@ -21,7 +21,7 @@ public class StorageTypesController(IStorageTypeService storageTypeService) : Co
     public async Task<ActionResult<StorageTypeDto>> GetById(Guid id)
     {
         var result = await storageTypeService.GetByIdAsync(id);
-        if (result is null) return NotFound();
+        if (result is null) return NotFound(new { message = "Storage type not found" });
         return Ok(result);
     }
 }
