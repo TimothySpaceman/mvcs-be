@@ -14,4 +14,9 @@ public record FileChangeDto(
             domain.After is null ? null : FileSnapshotDto.FromDomain(domain.After)
         );
     }
+
+    public FileChange ToDomain()
+    {
+        return new FileChange(Before?.ToDomain(), After?.ToDomain());
+    }
 }

@@ -5,6 +5,7 @@ using Lib.Modules.Projects.Services;
 using Lib.Modules.Vcs.DTOs;
 using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lib.Modules.Vcs.Controllers;
@@ -14,7 +15,8 @@ namespace Lib.Modules.Vcs.Controllers;
 public class VcsController(
     IProjectService projectService,
     IRefService refService,
-    ICommitService commitService
+    ICommitService commitService,
+    IPushService pushService
 ) : ControllerBase
 {
     [HttpGet("{projectId:guid}/vcs/pull")]
@@ -97,6 +99,48 @@ public class VcsController(
 
         var snapshot = await commitService.GetSnapshotAsync(projectId, targetId, cancellationToken);
         return Ok(SnapshotDto.FromDomain(snapshot));
+    }
+
+    [Authorize]
+    [HttpPost("{projectId:guid}/vcs/push")]
+    public async Task<ActionResult> Push(
+        [FromRoute] Guid projectId,
+        [FromBody] PushRequestDto bodyDto,
+        CancellationToken cancellationToken
+    )
+    {
+        var project = await projectService.GetRawByIdAsync(projectId);
+        var userId = GetCurrentUserId()!.Value;
+        if (!project.CanRead(userId))
+        {
+            return NotFound(new
+            {
+                Message = "Project not found"
+            });
+        }
+
+        if (!project.CanWrite(userId))
+        {
+            return StatusCode(403, new { message = "You cannot push to this project" });
+        }
+
+        var refValue = await refService.GetRefValueAsync(projectId, bodyDto.RefName, cancellationToken);
+        if (refValue != HashIdHelper.ParseNullable(bodyDto.ExpectedHead))
+        {
+            return Conflict(new
+            {
+                Message = "Ref values mismatch detected"
+            });
+        }
+
+        await pushService.UpdateCommitsChainAsync(
+            project,
+            bodyDto.RefName,
+            bodyDto.Commits.Select(c => c.ToDomain()),
+            cancellationToken
+        );
+
+        return NoContent();
     }
 
     private Guid? GetCurrentUserId()

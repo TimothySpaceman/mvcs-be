@@ -12,4 +12,9 @@ public record UserIdentityDto(
     {
         return new UserIdentityDto(domain.Id, domain.Name, domain.Email);
     }
+
+    public UserIdentity ToDomain()
+    {
+        return new UserIdentity(Id, Name, Email);
+    }
 }

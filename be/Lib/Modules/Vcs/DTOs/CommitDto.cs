@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Core.Commits;
 using Core.Storage;
 
@@ -21,6 +22,18 @@ public record CommitDto(
             domain.Changes.Select(FileChangeDto.FromDomain).ToArray(),
             UserIdentityDto.FromDomain(domain.Author),
             domain.CreatedAt
+        );
+    }
+
+    public Commit ToDomain()
+    {
+        return new Commit(
+            Id,
+            ParentId,
+            Message,
+            Changes.Select(c => c.ToDomain()).ToImmutableArray(),
+            Author.ToDomain(),
+            CreatedAt
         );
     }
 }

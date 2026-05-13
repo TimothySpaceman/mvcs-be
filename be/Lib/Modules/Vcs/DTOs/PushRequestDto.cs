@@ -2,6 +2,6 @@ namespace Lib.Modules.Vcs.DTOs;
 
 public record PushRequestDto(
     string RefName,
-    string ExpectedHead,
+    string? ExpectedHead,
     IEnumerable<CommitDto> Commits
 );

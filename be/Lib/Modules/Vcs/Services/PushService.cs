@@ -1,5 +1,6 @@
 using Core.Commits;
 using Core.Storage;
+using Lib.Modules.Projects.Entities;
 using Lib.Modules.Projects.Services;
 using Lib.Modules.Vcs.Entities;
 using Lib.Modules.Vcs.Repository;
@@ -22,7 +23,16 @@ public class PushService(
     )
     {
         var project = await projectService.GetRawByIdAsync(projectId);
+        await UpdateCommitsChainAsync(project, refName, commits, cancellationToken);
+    }
 
+    public async Task UpdateCommitsChainAsync(
+        Project project,
+        string refName,
+        IEnumerable<Commit> commits,
+        CancellationToken cancellationToken = default
+    )
+    {
         var commitsList = commits.ToList();
         var latestCommit = GetLatestCommit(commitsList);
 
@@ -30,14 +40,14 @@ public class PushService(
             .Where(fc => fc.After is not null)
             .Select(fc => fc.After!.BlobId)
         ).Distinct();
-        await EnsureBlobIdsAsync(projectId, blobIds, cancellationToken);
+        await EnsureBlobIdsAsync(project.Id, blobIds, cancellationToken);
 
-        await commitRepository.AddRangeAsync(projectId, commitsList, cancellationToken);
+        await commitRepository.AddRangeAsync(project.Id, commitsList, cancellationToken);
 
-        var refEntry = await refRepository.GetAsync(projectId, refName, cancellationToken);
+        var refEntry = await refRepository.GetAsync(project.Id, refName, cancellationToken);
         if (refEntry is null)
         {
-            refEntry = RefEntity.Create(projectId, refName, latestCommit.Id);
+            refEntry = RefEntity.Create(project.Id, refName, latestCommit.Id);
             await refRepository.AddAsync(refEntry, cancellationToken);
         }
         else
