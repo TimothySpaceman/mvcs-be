@@ -4,6 +4,7 @@ using Core.Storage;
 using Lib.Modules.Projects.Services;
 using Lib.Modules.Vcs.DTOs;
 using Lib.Modules.Vcs.Helpers;
+using Lib.Modules.Vcs.Repository;
 using Lib.Modules.Vcs.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,8 @@ public class VcsController(
     IProjectService projectService,
     IRefService refService,
     ICommitService commitService,
-    IPushService pushService
+    IPushService pushService,
+    IBlobMetadataRepository blobMetadataRepository
 ) : ControllerBase
 {
     [HttpGet("{projectId:guid}/vcs/pull")]
@@ -49,7 +51,14 @@ public class VcsController(
         }
 
         var chain = await commitService.GetChainAsync(projectId, refValue.Value, fromHashId, cancellationToken);
-        return Ok(new PullResultDto(chain.Select(CommitDto.FromDomain)));
+        var chainList = chain.ToList();
+        var blobIds = BlobHelper.GetBlobsFromCommitsChain(chainList);
+        var blobs = await blobMetadataRepository.GetAllByIdsAsync(blobIds, projectId, cancellationToken);
+
+        return Ok(new PullResultDto(
+            chainList.Select(CommitDto.FromDomain),
+            blobs.Select(BlobMetadataDto.FromDomain)
+        ));
     }
 
     [HttpGet("{projectId:guid}/vcs/snapshot")]

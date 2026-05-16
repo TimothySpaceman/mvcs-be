@@ -9,6 +9,7 @@ using Lib.Modules.Storages;
 using Lib.Modules.Transfers;
 using Lib.Modules.Users;
 using Lib.Modules.Vcs;
+using Lib.Modules.Vcs.Converters;
 using Lib.Shared.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
@@ -29,6 +30,7 @@ builder.Services.AddVcsModule();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new HashIdJsonConverter());
 });
 builder.Services.AddOpenApi();
 

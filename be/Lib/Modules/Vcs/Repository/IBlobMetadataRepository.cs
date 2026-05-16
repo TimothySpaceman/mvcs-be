@@ -23,6 +23,12 @@ public interface IBlobMetadataRepository
         CancellationToken cancellationToken = default
     );
 
+    public Task<List<BlobMetadata>> GetAllByIdsAsync(
+        IEnumerable<HashId> ids,
+        Guid projectId,
+        CancellationToken cancellationToken = default
+    );
+
     public Task<List<BlobMetadata>> GetAllByProjectIdAsync(
         Guid projectId,
         CancellationToken cancellationToken = default

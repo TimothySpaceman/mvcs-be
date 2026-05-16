@@ -46,6 +46,20 @@ public class BlobMetadataRepository(VcsDbContext db) : IBlobMetadataRepository
         return foundCount == idList.Count;
     }
 
+    public Task<List<BlobMetadata>> GetAllByIdsAsync(
+        IEnumerable<HashId> ids,
+        Guid projectId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var idList = ids.ToList();
+        return db.Set<BlobMetadataEntity>()
+            .AsNoTracking()
+            .Where(b => b.ProjectId == projectId && idList.Contains(b.Id))
+            .Select(b => b.ToDomain())
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<BlobMetadata>> GetAllByProjectIdAsync(
         Guid projectId,
         CancellationToken cancellationToken = default
