@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using Lib.Modules.Auth.DTOs;
 using Lib.Modules.Auth.Services;
 using Lib.Modules.Users.DTOs;
@@ -50,6 +51,7 @@ public class AuthController(
 
         Response.Cookies.Delete(config["JwtSettings:Access:CookieName"]!);
         Response.Cookies.Delete(config["JwtSettings:Refresh:CookieName"]!);
+        Response.Cookies.Delete(config["Auth:Metadata:CookieName"]!);
 
         return Ok(new { message = "Logged out successfully" });
     }
@@ -110,12 +112,13 @@ public class AuthController(
     private void SetAuthCookies(TokenPairDto tokens)
     {
         var isDev = env.IsDevelopment();
+        var sameSite = isDev ? SameSiteMode.None : SameSiteMode.Strict;
 
         var accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = isDev ? SameSiteMode.None : SameSiteMode.Strict,
+            SameSite = sameSite,
             Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Access:ExpiryMinutes"))
         };
 
@@ -123,11 +126,28 @@ public class AuthController(
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = isDev ? SameSiteMode.None : SameSiteMode.Strict,
+            SameSite = sameSite,
             Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("JwtSettings:Refresh:ExpiryMinutes"))
         };
 
+        var metadataCookieOptions = new CookieOptions
+        {
+            HttpOnly = false,
+            Secure = true,
+            SameSite = sameSite,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(config.GetValue<double>("Auth:Metadata:ExpiryMinutes"))
+        };
+
+        var metadataString = JsonSerializer.Serialize(
+            UserMetadataDto.FromUserDto(tokens.User),
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }
+        );
+
         Response.Cookies.Append(config["JwtSettings:Access:CookieName"]!, tokens.AccessToken, accessCookieOptions);
         Response.Cookies.Append(config["JwtSettings:Refresh:CookieName"]!, tokens.RefreshToken, refreshCookieOptions);
+        Response.Cookies.Append(config["Auth:Metadata:CookieName"]!, metadataString, metadataCookieOptions);
     }
 }

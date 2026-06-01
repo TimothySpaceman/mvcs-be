@@ -1,6 +1,9 @@
+using Lib.Modules.Users.DTOs;
+
 namespace Lib.Modules.Auth.DTOs;
 
 public record TokenPairDto(
     string AccessToken,
-    string RefreshToken
+    string RefreshToken,
+    UserDto User
 );

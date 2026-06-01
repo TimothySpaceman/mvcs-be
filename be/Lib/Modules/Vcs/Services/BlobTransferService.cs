@@ -42,6 +42,9 @@ public class BlobTransferService(
             throw new InvalidOperationException("Blob id is not valid hex string", ex);
         }
 
+        var existing = await blobMetadataRepository.GetByIdAsync(blobId, projectId);
+        if (existing is not null) return;
+
         var length = long.Parse(parsed["length"]);
         var blobMetadata = new BlobMetadata(blobId, length);
         await blobMetadataRepository.AddAsync(blobMetadata, projectId);

@@ -92,7 +92,7 @@ public class SessionService(
     {
         var accessToken = jwtService.GenerateAccessToken(user);
         var refreshToken = jwtService.GenerateRefreshToken(user);
-        return new TokenPairDto(accessToken, refreshToken);
+        return new TokenPairDto(accessToken, refreshToken, user);
     }
 
     private string HashToken(string token)

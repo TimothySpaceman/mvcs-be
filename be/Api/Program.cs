@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using HealthChecks.UI.Client;
 using Lib.Infrastructure.App;
@@ -29,7 +30,7 @@ builder.Services.AddVcsModule();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
     options.JsonSerializerOptions.Converters.Add(new HashIdJsonConverter());
 });
 builder.Services.AddOpenApi();
