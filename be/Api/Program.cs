@@ -7,6 +7,7 @@ using Lib.Infrastructure.Vcs;
 using Lib.Modules.Auth;
 using Lib.Modules.Projects;
 using Lib.Modules.Storages;
+using Lib.Modules.Storages.Entities.Schema;
 using Lib.Modules.Transfers;
 using Lib.Modules.Users;
 using Lib.Modules.Vcs;
@@ -31,6 +32,7 @@ builder.Services.AddVcsModule();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    options.JsonSerializerOptions.Converters.Add(new SchemaFieldJsonConverter());
     options.JsonSerializerOptions.Converters.Add(new HashIdJsonConverter());
 });
 builder.Services.AddOpenApi();

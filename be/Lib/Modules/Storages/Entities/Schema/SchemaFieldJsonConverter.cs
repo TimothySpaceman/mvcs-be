@@ -9,20 +9,23 @@ public class SchemaFieldJsonConverter : JsonConverter<SchemaField>
     {
         using var doc = JsonDocument.ParseValue(ref reader);
         var root = doc.RootElement;
- 
-        if (!root.TryGetProperty("$type", out var typeProp))
-            throw new JsonException("Missing '$type' discriminator on SchemaField");
+        
+        if (!root.TryGetProperty("type", out var typeProp))
+        {
+            throw new JsonException("Missing \"type\" discriminator on SchemaField");
+        }
  
         var raw = root.GetRawText();
- 
-        return typeProp.GetString() switch
+        var typeValue = typeProp.GetString();
+        
+        return typeValue?.ToLowerInvariant() switch
         {
-            "Text"     => JsonSerializer.Deserialize<TextSchemaField>(raw, options),
-            "Number"   => JsonSerializer.Deserialize<NumberSchemaField>(raw, options),
-            "Boolean"  => JsonSerializer.Deserialize<BooleanSchemaField>(raw, options),
-            "Select"   => JsonSerializer.Deserialize<SelectSchemaField>(raw, options),
-            "Password" => JsonSerializer.Deserialize<PasswordSchemaField>(raw, options),
-            var t      => throw new JsonException($"Unknown SchemaField type discriminator: '{t}'")
+            "text"     => JsonSerializer.Deserialize<TextSchemaField>(raw, options),
+            "number"   => JsonSerializer.Deserialize<NumberSchemaField>(raw, options),
+            "boolean"  => JsonSerializer.Deserialize<BooleanSchemaField>(raw, options),
+            "select"   => JsonSerializer.Deserialize<SelectSchemaField>(raw, options),
+            "password" => JsonSerializer.Deserialize<PasswordSchemaField>(raw, options),
+            var t      => throw new JsonException($"Unknown SchemaField type discriminator: \"{t}\"")
         };
     }
  
