@@ -5,9 +5,7 @@ namespace Lib.Modules.Storages.DTOs;
 public record StorageDto(
     Guid Id,
     string Name,
-    Guid StorageTypeId,
-    string TypeKey,
-    string TypeLabel,
+    StorageTypeInfoDto StorageType,
     bool IsDefault,
     bool IsPublic,
     DateTimeOffset CreatedAt,
@@ -19,9 +17,7 @@ public record StorageDto(
         return new StorageDto(
             storage.Id,
             storage.Name,
-            storage.StorageTypeId,
-            storage.StorageType.Key,
-            storage.StorageType.Label,
+            StorageTypeInfoDto.FromStorageType(storage.StorageType),
             storage.IsPublic,
             storage.IsDefault,
             storage.CreatedAt,

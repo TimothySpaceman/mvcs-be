@@ -21,6 +21,34 @@ public class VcsController(
     IBlobMetadataRepository blobMetadataRepository
 ) : ControllerBase
 {
+    [HttpGet("{projectId:guid}/vcs/history")]
+    public async Task<ActionResult<HistoryResultDto>> GetHistory(
+        [FromRoute] Guid projectId,
+        [FromQuery] string refName,
+        [FromQuery] string? fromId,
+        CancellationToken cancellationToken
+    )
+    {
+        var fromHashId = HashIdHelper.ParseNullable(fromId);
+
+        var project = await projectService.GetRawByIdAsync(projectId);
+        var userId = GetCurrentUserId();
+        if (!project.CanRead(userId))
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+
+        var refValue = await refService.GetRefValueAsync(projectId, refName, cancellationToken);
+        if (refValue is null)
+        {
+            return NotFound(new { message = "Ref not found" });
+        }
+
+        var chain = await commitService.GetChainAsync(projectId, refValue.Value, fromHashId, cancellationToken);
+
+        return Ok(new HistoryResultDto(chain.Select(CommitInfoDto.FromDomain)));
+    }
+    
     [HttpGet("{projectId:guid}/vcs/pull")]
     public async Task<ActionResult<PullResultDto>> Pull(
         [FromRoute] Guid projectId,

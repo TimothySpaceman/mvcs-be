@@ -2,7 +2,6 @@ namespace Lib.Modules.Storages.Entities;
 
 public enum StorageAccessType
 {
-    ReadOnly = 0,
     ReadWrite = 1,
     Owner = 2,
 }
@@ -41,5 +40,4 @@ public class StorageAccess
 
     public bool IsOwner => AccessType is StorageAccessType.Owner;
     public bool CanWrite => IsOwner || AccessType is StorageAccessType.ReadWrite;
-    public bool CanRead => true;
 }

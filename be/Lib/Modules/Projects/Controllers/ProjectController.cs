@@ -40,7 +40,7 @@ public class ProjectController(IProjectService projectService, IStorageService s
         if (storage.IsPublic) return await projectService.CreateAsync(userId, createDto);
 
         var storageAccess = storage.AccessEntries.FirstOrDefault(a => a.UserId == userId);
-        if (storageAccess is null || !storageAccess.CanRead)
+        if (storageAccess is null)
         {
             return StatusCode(404, new { message = "Storage not found" });
         }
