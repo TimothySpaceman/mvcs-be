@@ -28,6 +28,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.IsInitialized)
             .IsRequired()
             .HasDefaultValue(false);
+        
+        builder.Property(p => p.DefaultRefName)
+            .HasMaxLength(255);
 
         builder.Property(p => p.CreatedAt)
             .IsRequired();

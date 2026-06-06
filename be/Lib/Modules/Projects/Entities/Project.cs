@@ -9,6 +9,7 @@ public class Project
     public string Description { get; private set; } = null!;
     public bool IsPublic { get; private set; }
     public bool IsInitialized { get; private set; }
+    public string? DefaultRefName { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
@@ -38,9 +39,10 @@ public class Project
 
     public bool IsDeleted => DeletedAt.HasValue;
 
-    public void Initialize()
+    public void Initialize(string defaultRefName)
     {
         IsInitialized = true;
+        DefaultRefName = defaultRefName;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -59,6 +61,12 @@ public class Project
     public void UpdateVisibility(bool isPublic)
     {
         IsPublic = isPublic;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+    
+    public void UpdateDefaultRef(string? refName)
+    {
+        DefaultRefName = refName;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

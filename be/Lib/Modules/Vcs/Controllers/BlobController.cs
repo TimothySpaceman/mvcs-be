@@ -25,6 +25,7 @@ public class BlobController(
     public async Task DownloadFileAsync(
         [FromRoute] Guid projectId,
         [FromRoute] string blobId,
+        [FromQuery] string? fileName,
         CancellationToken cancellationToken
     )
     {
@@ -62,6 +63,14 @@ public class BlobController(
                 Response.Headers.Append(
                     "Content-Range",
                     $"bytes {clampedRange.Start}-{clampedRange.End}/{totalLength}"
+                );
+            }
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                var encodedFileName = Uri.EscapeDataString(fileName);
+                Response.Headers.Append(
+                    "Content-Disposition",
+                    $"attachment; filename*=UTF-8''{encodedFileName}"
                 );
             }
 

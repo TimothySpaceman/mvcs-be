@@ -10,8 +10,8 @@ public interface IProjectService
     public Task<Project> GetRawByIdAsync(Guid id);
     public Task<ProjectDto> CreateAsync(Guid authorId, ProjectCreateDto createDto);
     public Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto updateDto);
-    public Task InitializeAsync(Guid id);
-    public Task InitializeAsync(Project project);
+    public Task InitializeAsync(Guid id, string defaultRefName);
+    public Task InitializeAsync(Project project, string defaultRefName);
     public Task DeleteAsync(Guid id, bool soft = true);
     public Task GrantAccessAsync(Guid id, ProjectGrantAccessDto grantDto);
     public Task RevokeAccessAsync(Guid id, Guid targetUserId);

@@ -46,20 +46,21 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         if (updateDto.Title is not null) project.Rename(updateDto.Title);
         if (updateDto.Description is not null) project.UpdateDescription(updateDto.Description);
         if (updateDto.IsPublic is not null) project.UpdateVisibility(updateDto.IsPublic.Value);
+        if (updateDto.DefaultRefName is not null) project.UpdateDefaultRef(updateDto.DefaultRefName);
         await repository.SaveChangesAsync();
         return ProjectDto.FromProject(project);
     }
 
-    public async Task InitializeAsync(Guid id)
+    public async Task InitializeAsync(Project project, string defaultRefName)
     {
-        var project = await GetRawByIdAsync(id);
-        await InitializeAsync(project);
+        project.Initialize(defaultRefName);
+        await repository.SaveChangesAsync();
     }
 
-    public async Task InitializeAsync(Project project)
+    public async Task InitializeAsync(Guid id, string defaultRefName)
     {
-        project.Initialize();
-        await repository.SaveChangesAsync();
+        var project = await GetRawByIdAsync(id);
+        await InitializeAsync(project, defaultRefName);
     }
 
     public async Task DeleteAsync(Guid id, bool soft = true)

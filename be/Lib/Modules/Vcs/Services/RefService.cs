@@ -6,6 +6,14 @@ namespace Lib.Modules.Vcs.Services;
 
 public class RefService(IRefRepository refRepository) : IRefService
 {
+    public Task<List<RefEntity>> GetAllRefsAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return refRepository.GetAllAsync(projectId, cancellationToken);
+    }
+    
     public async Task<HashId?> GetRefValueAsync(
         Guid projectId,
         string refName,

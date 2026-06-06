@@ -1,9 +1,15 @@
 using Core.Storage;
+using Lib.Modules.Vcs.Entities;
 
 namespace Lib.Modules.Vcs.Services;
 
 public interface IRefService
 {
+    public Task<List<RefEntity>> GetAllRefsAsync(
+        Guid projectId,
+        CancellationToken cancellationToken = default
+    );
+    
     public Task<HashId?> GetRefValueAsync(
         Guid projectId,
         string refName,

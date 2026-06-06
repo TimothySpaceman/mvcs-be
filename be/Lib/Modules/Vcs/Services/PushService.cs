@@ -57,7 +57,7 @@ public class PushService(
 
         await refRepository.SaveChangesAsync(cancellationToken);
 
-        if (!project.IsInitialized) await projectService.InitializeAsync(project);
+        if (!project.IsInitialized) await projectService.InitializeAsync(project, refName);
     }
 
     private async Task EnsureBlobIdsAsync(

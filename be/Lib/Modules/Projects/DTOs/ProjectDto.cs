@@ -9,6 +9,7 @@ public record ProjectDto(
     string Description,
     bool IsPublic,
     bool IsInitialized,
+    string? DefaultRefName,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt
 )
@@ -22,8 +23,9 @@ public record ProjectDto(
             project.Description,
             project.IsPublic,
             project.IsInitialized,
+            project.DefaultRefName,
             project.CreatedAt,
             project.UpdatedAt
         );
     }
-};
+}
