@@ -21,10 +21,21 @@ public class CommitService(ICommitRepository commitRepository) : ICommitService
         return commitRepository.GetAsync(projectId, commitId, cancellationToken);
     }
 
+    public Task<IEnumerable<Commit>> GetChainAsync(
+        Guid projectId,
+        HashId toId,
+        HashId? fromId = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return GetChainAsync(projectId, toId, fromId, null, cancellationToken);
+    }
+
     public async Task<IEnumerable<Commit>> GetChainAsync(
         Guid projectId,
         HashId toId,
         HashId? fromId = null,
+        int? limit = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -46,10 +57,13 @@ public class CommitService(ICommitRepository commitRepository) : ICommitService
             chain.Add(current);
 
             if (current.Id == fromId || current.ParentId is null) break;
+            if (limit is not null && chain.Count == limit) break;
 
             var parentId = current.ParentId.Value;
             if (!allCommits.TryGetValue(parentId, out current!))
+            {
                 throw new CommitNotFoundException($"Parent commit {parentId} not found");
+            }
         }
 
         return chain;

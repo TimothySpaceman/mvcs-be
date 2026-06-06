@@ -6,6 +6,7 @@ using Lib.Modules.Vcs.DTOs;
 using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Repository;
 using Lib.Modules.Vcs.Services;
+using Lib.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,52 +22,6 @@ public class VcsController(
     IBlobMetadataRepository blobMetadataRepository
 ) : ControllerBase
 {
-    [HttpGet("{projectId:guid}/vcs/refs")]
-    public async Task<ActionResult<IEnumerable<RefDto>>> GetRefs(
-        [FromRoute] Guid projectId,
-        CancellationToken cancellationToken
-    )
-    {
-        var project = await projectService.GetRawByIdAsync(projectId);
-        var userId = GetCurrentUserId();
-        if (!project.CanRead(userId))
-        {
-            return NotFound(new { message = "Project not found" });
-        }
-
-        var refs = await refService.GetAllRefsAsync(projectId, cancellationToken);
-
-        return Ok(refs.Select(RefDto.FromEntity));
-    }
-    
-    [HttpGet("{projectId:guid}/vcs/history")]
-    public async Task<ActionResult<HistoryResultDto>> GetHistory(
-        [FromRoute] Guid projectId,
-        [FromQuery] string refName,
-        [FromQuery] string? fromId,
-        CancellationToken cancellationToken
-    )
-    {
-        var fromHashId = HashIdHelper.ParseNullable(fromId);
-
-        var project = await projectService.GetRawByIdAsync(projectId);
-        var userId = GetCurrentUserId();
-        if (!project.CanRead(userId))
-        {
-            return NotFound(new { message = "Project not found" });
-        }
-
-        var refValue = await refService.GetRefValueAsync(projectId, refName, cancellationToken);
-        if (refValue is null)
-        {
-            return NotFound(new { message = "Ref not found" });
-        }
-
-        var chain = await commitService.GetChainAsync(projectId, refValue.Value, fromHashId, cancellationToken);
-
-        return Ok(new HistoryResultDto(chain.Select(CommitInfoDto.FromDomain)));
-    }
-    
     [HttpGet("{projectId:guid}/vcs/pull")]
     public async Task<ActionResult<PullResultDto>> Pull(
         [FromRoute] Guid projectId,

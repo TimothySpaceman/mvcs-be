@@ -2,12 +2,31 @@ using System.Data.Common;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Entities;
 using Lib.Modules.Users.Repositories;
+using Lib.Shared.DTOs;
 using Lib.Shared.Exceptions;
 
 namespace Lib.Modules.Users.Services;
 
 public class UserService(IUserRepository repository) : IUserService
 {
+    public async Task<PagedResultDto<UserDto>> GetAllAsync(int page, int itemsPerPage)
+    {
+        var users = await repository.GetAllAsync(page, itemsPerPage);
+        var totalItems = await repository.CountAsync();
+        return new PagedResultDto<UserDto>(
+            users.Select(UserDto.FromUser),
+            page,
+            itemsPerPage,
+            totalItems
+        );
+    }
+
+    public async Task<List<UserDto>> GetAllByIdsAsync(IEnumerable<Guid> ids)
+    {
+        var users = await repository.GetAllByIdsAsync(ids);
+        return users.Select(UserDto.FromUser).ToList();
+    }
+
     public async Task<UserDto?> GetByIdAsync(Guid id)
     {
         var user = await repository.GetByIdAsync(id);
@@ -41,12 +60,13 @@ public class UserService(IUserRepository repository) : IUserService
         if (await ExistsByEmailAsync(createDto.Email))
         {
             throw new ConflictException("Email already exists");
-        }   
+        }
+
         if (await ExistsByUsernameAsync(createDto.Username))
         {
             throw new ConflictException("Username already exists");
-        }   
-        
+        }
+
         var user = User.Create(
             createDto.Username,
             createDto.DisplayName,
@@ -70,16 +90,16 @@ public class UserService(IUserRepository repository) : IUserService
     {
         var user = await repository.GetByIdAsync(id);
         if (user is null) throw new NotFoundException("User not found");
-        
+
         if (soft)
         {
-            user.Delete();    
+            user.Delete();
         }
         else
         {
             repository.Delete(user);
         }
-        
+
         await repository.SaveChangesAsync();
     }
 }

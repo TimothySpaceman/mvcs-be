@@ -23,6 +23,14 @@ public interface ICommitService
         HashId? fromId = null,
         CancellationToken cancellationToken = default
     );
+    
+    public Task<IEnumerable<Commit>> GetChainAsync(
+        Guid projectId,
+        HashId toId,
+        HashId? fromId = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default
+    );
 
     public Task<Snapshot> GetSnapshotAsync(
         Guid projectId,
