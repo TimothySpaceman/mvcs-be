@@ -14,11 +14,11 @@ public class StorageAccessConfiguration : IEntityTypeConfiguration<StorageAccess
 
         builder.Property(a => a.AccessType)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Property(a => a.CreatedAt)
             .IsRequired();
-        
+
         builder.Property(a => a.UpdatedAt)
             .IsRequired();
 

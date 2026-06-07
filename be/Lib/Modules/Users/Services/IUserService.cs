@@ -1,9 +1,12 @@
 using Lib.Modules.Users.DTOs;
+using Lib.Shared.DTOs;
 
 namespace Lib.Modules.Users.Services;
 
 public interface IUserService
 {
+    public Task<PagedResultDto<UserDto>> GetAllAsync(int page, int itemsPerPage);
+    public Task<List<UserDto>> GetAllByIdsAsync(IEnumerable<Guid> ids);
     public Task<UserDto?> GetByIdAsync(Guid id);
     public Task<UserDto?> GetByEmailAsync(string email);
     public Task<UserDto?> GetByUsernameAsync(string username);

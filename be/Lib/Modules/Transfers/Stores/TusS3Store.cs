@@ -1,11 +1,11 @@
 using System.IO.Pipelines;
-using System.Text;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Transfers.Adapters;
 using Lib.Modules.Transfers.ConfigModels;
 using Lib.Modules.Transfers.DTOs;
+using Lib.Modules.Transfers.Helpers;
 using Lib.Shared.Exceptions;
 using tusdotnet.Models.Configuration;
 
@@ -19,8 +19,13 @@ public class TusS3Store : IFullTusStore, IDisposable
     private readonly IRedisService _redisService;
     private readonly AmazonS3Client _s3Client;
 
-    public TusS3Store(S3StorageConfig config, AmazonS3Client s3Client, Guid userId, string scopePath,
-        IRedisService redisService)
+    public TusS3Store(
+        S3StorageConfig config,
+        AmazonS3Client s3Client,
+        Guid userId,
+        string scopePath,
+        IRedisService redisService
+    )
     {
         _config = config;
         _s3Client = s3Client;
@@ -31,13 +36,13 @@ public class TusS3Store : IFullTusStore, IDisposable
 
     public async Task<string> CreateFileAsync(long uploadLength, string metadata, CancellationToken cancellationToken)
     {
-        var parsedMetadata = ParseMetadata(metadata);
+        var parsedMetadata = TusMetadataHelper.ParseMetadata(metadata);
         var fileName = parsedMetadata.TryGetValue("filename", out var fn) ? fn : Guid.NewGuid().ToString();
 
         var request = new InitiateMultipartUploadRequest
         {
             BucketName = _config.Bucket,
-            Key = S3StorageAdapter.BuildFilePath(_config, _userId, _scopePath, fileName)
+            Key = S3StorageAdapter.BuildFilePath(_config, _scopePath, fileName)
         };
         var response = await _s3Client.InitiateMultipartUploadAsync(request, cancellationToken);
 
@@ -154,24 +159,6 @@ public class TusS3Store : IFullTusStore, IDisposable
         await _s3Client.CompleteMultipartUploadAsync(request, ctx.CancellationToken);
         await _redisService.DeleteAsync(BuildUploadRecordKey(ctx.FileId));
         await _redisService.DeleteAsync(BuildUploadPartsKey(ctx.FileId));
-    }
-
-    private static string DecodeMetadataValue(string base64Value)
-    {
-        var bytes = Convert.FromBase64String(base64Value);
-        return Encoding.UTF8.GetString(bytes);
-    }
-
-    private static Dictionary<string, string> ParseMetadata(string metadata)
-    {
-        return metadata
-            .Split(',')
-            .Select(pair => pair.Trim().Split(' '))
-            .Where(parts => parts.Length == 2)
-            .ToDictionary(
-                parts => parts[0],
-                parts => DecodeMetadataValue(parts[1])
-            );
     }
 
     private string BuildUploadRecordKey(string fileId)

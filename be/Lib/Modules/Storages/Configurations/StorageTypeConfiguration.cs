@@ -11,10 +11,11 @@ public class StorageTypeConfiguration : IEntityTypeConfiguration<StorageType>
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters =
         {
             new SchemaFieldJsonConverter(),
-            new JsonStringEnumConverter()
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         }
     };
 

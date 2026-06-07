@@ -14,14 +14,6 @@ public class StorageRepository(AppDbContext db) : IStorageRepository
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    public Task<Storage?> GetByIdWithAccessAsync(Guid id, Guid userId)
-    {
-        return db.Set<Storage>()
-            .Include(s => s.StorageType)
-            .Include(s => s.AccessEntries)
-            .FirstOrDefaultAsync(s => s.Id == id && (s.IsPublic || s.AccessEntries.Any(a => a.UserId == userId)));
-    }
-
     public Task<List<Storage>> GetAllByUserIdAsync(Guid userId)
     {
         return db.Set<Storage>()

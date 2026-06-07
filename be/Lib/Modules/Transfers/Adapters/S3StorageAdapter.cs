@@ -4,6 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Lib.Infrastructure.Redis;
 using Lib.Modules.Transfers.ConfigModels;
+using Lib.Modules.Transfers.DTOs;
 using Lib.Modules.Transfers.Stores;
 using Lib.Shared.Exceptions;
 
@@ -89,9 +90,34 @@ public class S3StorageAdapter : IStorageAdapter
         }
     }
 
+    public async Task<StorageHealthDto> GetStorageHealthAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new GetBucketLocationRequest
+            {
+                BucketName = _config.Bucket
+            };
+            await _s3Client.GetBucketLocationAsync(request, cancellationToken);
+            return new StorageHealthDto(true, null);
+        }
+        catch (AmazonS3Exception ex)
+        {
+            return new StorageHealthDto(false, ex.ErrorCode switch
+            {
+                "NoSuchBucket" => "Bucket not found",
+                "AccessDenied" => "Access denied",
+                _ => "Storage is unavailable"
+            });
+        }
+        catch (Exception)
+        {
+            return new StorageHealthDto(false, "Storage is unavailable");
+        }
+    }
+
     public static string BuildFilePath(
         S3StorageConfig config,
-        Guid userId,
         string scopePath,
         string fileName
     )
@@ -102,8 +128,6 @@ public class S3StorageAdapter : IStorageAdapter
         {
             parts.Add(config.RootPrefix.Trim('/'));
         }
-
-        parts.Add($"users/{userId}");
 
         if (!string.IsNullOrEmpty(scopePath))
         {

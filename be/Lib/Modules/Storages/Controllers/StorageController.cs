@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Lib.Modules.Storages.DTOs;
+using Lib.Modules.Storages.Entities;
 using Lib.Modules.Storages.Services;
+using Lib.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,82 +17,122 @@ public class StorageController(IStorageService storageService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<StorageDto>>> GetAll()
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
         var result = await storageService.GetAllByUserIdAsync(userId);
         return Ok(result);
     }
- 
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<StorageDto>> GetById(Guid id)
     {
-        var userId = GetUserId();
-        var result = await storageService.GetByIdAsync(id, userId);
-        if (result is null) return NotFound();
-        return Ok(result);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+        if (storage.CanRead(userId)) return Ok(StorageDto.FromStorage(storage));
+        return NotFound(new
+        {
+            message = "Storage not found"
+        });
     }
- 
-    [HttpGet("{id:guid}/config")]
-    public async Task<ActionResult<StorageConfigDto>> GetConfig(Guid id)
-    {
-        var userId = GetUserId();
-        var result = await storageService.GetConfigAsync(id, userId);
-        return Ok(result);
-    }
- 
+
     [HttpPost]
     public async Task<ActionResult<StorageDto>> Create([FromBody] StorageCreateDto dto)
     {
-        var userId = GetUserId();
+        var userId = GetCurrentUserId();
         var result = await storageService.CreateAsync(userId, dto);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
- 
+
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<StorageDto>> Update(Guid id, [FromBody] StorageUpdateDto dto)
     {
-        var userId = GetUserId();
-        var result = await storageService.UpdateAsync(id, userId, dto);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot edit this storage" });
+
+        var updated = await storageService.UpdateAsync(id, dto);
+        return Ok(updated);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot delete this storage" });
+
+        await storageService.DeleteAsync(id);
+        return NoContent();
+    }
+
+    [HttpGet("{id:guid}/config")]
+    public async Task<ActionResult<StorageConfigDto>> GetConfig(Guid id)
+    {
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot configure this storage" });
+
+        var result = await storageService.GetConfigAsync(id);
         return Ok(result);
     }
- 
+
     [HttpPatch("{id:guid}/config")]
-    public async Task<IActionResult> UpdateConfig(Guid id, [FromBody] StorageUpdateConfigDto dto)
+    public async Task<ActionResult> UpdateConfig(Guid id, [FromBody] StorageUpdateConfigDto dto)
     {
-        var userId = GetUserId();
-        await storageService.UpdateConfigAsync(id, userId, dto);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId)) return StatusCode(403, new { message = "You cannot configure this storage" });
+
+        await storageService.UpdateConfigAsync(id, dto);
         return NoContent();
     }
- 
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var userId = GetUserId();
-        await storageService.DeleteAsync(id, userId);
-        return NoContent();
-    }
- 
+
     [HttpPut("{id:guid}/access/{targetUserId:guid}")]
-    public async Task<IActionResult> GrantAccess(Guid id, Guid targetUserId, [FromBody] StorageGrantAccessDto dto)
+    public async Task<ActionResult> GrantAccess(Guid id, Guid targetUserId, [FromBody] StorageGrantAccessDto dto)
     {
-        var userId = GetUserId();
-        await storageService.GrantAccessAsync(id, userId, dto with { UserId = targetUserId });
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId))
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
+
+        await storageService.GrantAccessAsync(id, dto with { UserId = targetUserId });
         return NoContent();
     }
- 
+
     [HttpDelete("{id:guid}/access/{targetUserId:guid}")]
-    public async Task<IActionResult> RevokeAccess(Guid id, Guid targetUserId)
+    public async Task<ActionResult> RevokeAccess(Guid id, Guid targetUserId)
     {
-        var userId = GetUserId();
-        await storageService.RevokeAccessAsync(id, userId, targetUserId);
+        var storage = await GetStorage(id);
+        var userId = GetCurrentUserId();
+
+        if (!storage.CanRead(userId)) return NotFound(new { message = "Storage not found" });
+        if (!storage.IsOwnedBy(userId))
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
+
+        await storageService.RevokeAccessAsync(id, targetUserId);
         return NoContent();
     }
- 
-    private Guid GetUserId()
+
+    private Guid GetCurrentUserId()
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)
                     ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
- 
-        if (claim is null) throw new UnauthorizedAccessException("Unable to identify the user");
+
+        if (claim is null) throw new UnauthorizedException("Unable to identify the user");
         return Guid.Parse(claim.Value);
+    }
+
+    private Task<Storage> GetStorage(Guid storageId)
+    {
+        return storageService.GetRawByIdAsync(storageId);
     }
 }

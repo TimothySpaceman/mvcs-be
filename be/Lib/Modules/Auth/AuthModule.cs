@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Text;
 using Lib.Modules.Auth.Configurations;
 using Lib.Modules.Auth.Entities;

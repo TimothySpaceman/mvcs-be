@@ -10,29 +10,25 @@ public class StorageService(IStorageRepository repository) : IStorageService
     public async Task<List<StorageDto>> GetAllByUserIdAsync(Guid userId)
     {
         var storages = await repository.GetAllByUserIdAsync(userId);
-        return storages.Select(s => StorageDto.FromStorage(s, userId)).ToList();
+        return storages.Select(StorageDto.FromStorage).ToList();
     }
 
-    public async Task<StorageDto?> GetByIdAsync(Guid id, Guid userId)
+    public async Task<StorageDto?> GetByIdAsync(Guid id)
     {
-        var storage = await repository.GetByIdWithAccessAsync(id, userId);
-        return storage is null ? null : StorageDto.FromStorage(storage, userId);
+        var storage = await repository.GetByIdAsync(id);
+        return storage is null ? null : StorageDto.FromStorage(storage);
     }
-    
-    public async Task<Storage> GetRawByIdAsync(Guid id, Guid userId)
+
+    public async Task<Storage> GetRawByIdAsync(Guid id)
     {
-        var storage = await repository.GetByIdWithAccessAsync(id, userId);
-        if (storage is null)
-        {
-            throw new NotFoundException("Storage not found or access denied");
-        }
- 
+        var storage = await repository.GetByIdAsync(id);
+        if (storage is null) throw new NotFoundException("Storage not found");
         return storage;
     }
 
-    public async Task<StorageConfigDto> GetConfigAsync(Guid id, Guid userId)
+    public async Task<StorageConfigDto> GetConfigAsync(Guid id)
     {
-        var storage = await GetStorageWithWriteAccessOrThrowAsync(id, userId);
+        var storage = await GetRawByIdAsync(id);
         return StorageConfigDto.FromStorage(storage);
     }
 
@@ -45,33 +41,29 @@ public class StorageService(IStorageRepository repository) : IStorageService
         await repository.AddAccessAsync(ownerAccess);
         await repository.SaveChangesAsync();
 
-        var created = await repository.GetByIdWithAccessAsync(storage.Id, ownerId);
-        if (created is null)
-        {
-            throw new InvalidOperationException("Failed to create storage");
-        }
-
-        return StorageDto.FromStorage(created, ownerId);
+        var created = await repository.GetByIdAsync(storage.Id);
+        if (created is null) throw new InvalidOperationException("Failed to create storage");
+        return StorageDto.FromStorage(created);
     }
 
-    public async Task<StorageDto> UpdateAsync(Guid id, Guid userId, StorageUpdateDto updateDto)
+    public async Task<StorageDto> UpdateAsync(Guid id, StorageUpdateDto updateDto)
     {
-        var storage = await GetStorageWithWriteAccessOrThrowAsync(id, userId);
+        var storage = await GetRawByIdAsync(id);
         storage.Rename(updateDto.Name);
         await repository.SaveChangesAsync();
-        return StorageDto.FromStorage(storage, userId);
+        return StorageDto.FromStorage(storage);
     }
 
-    public async Task UpdateConfigAsync(Guid id, Guid userId, StorageUpdateConfigDto updateDto)
+    public async Task UpdateConfigAsync(Guid id, StorageUpdateConfigDto updateDto)
     {
-        var storage = await GetStorageWithOwnerAccessOrThrowAsync(id, userId);
+        var storage = await GetRawByIdAsync(id);
         storage.UpdateConfig(updateDto.Config);
         await repository.SaveChangesAsync();
     }
 
-    public async Task GrantAccessAsync(Guid id, Guid userId, StorageGrantAccessDto grantDto)
+    public async Task GrantAccessAsync(Guid id, StorageGrantAccessDto grantDto)
     {
-        var storage = await GetStorageWithOwnerAccessOrThrowAsync(id, userId);
+        var storage = await GetRawByIdAsync(id);
 
         if (grantDto.AccessType == StorageAccessType.Owner)
         {
@@ -92,14 +84,9 @@ public class StorageService(IStorageRepository repository) : IStorageService
         await repository.SaveChangesAsync();
     }
 
-    public async Task RevokeAccessAsync(Guid id, Guid userId, Guid targetUserId)
+    public async Task RevokeAccessAsync(Guid id, Guid targetUserId)
     {
-        var storage = await GetStorageWithOwnerAccessOrThrowAsync(id, userId);
-
-        if (targetUserId == userId)
-        {
-            throw new BadRequestException("Cannot revoke your own owner access");
-        }
+        var storage = await GetRawByIdAsync(id);
 
         var access = storage.AccessEntries.FirstOrDefault(a => a.UserId == targetUserId);
         if (access is null)
@@ -111,51 +98,10 @@ public class StorageService(IStorageRepository repository) : IStorageService
         await repository.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id, Guid userId)
+    public async Task DeleteAsync(Guid id)
     {
-        var storage = await GetStorageWithOwnerAccessOrThrowAsync(id, userId);
+        var storage = await GetRawByIdAsync(id);
         repository.Delete(storage);
         await repository.SaveChangesAsync();
-    }
-
-    private async Task<Storage> GetStorageWithWriteAccessOrThrowAsync(Guid id, Guid userId)
-    {
-        var storage = await repository.GetByIdWithAccessAsync(id, userId);
-        if (storage is null)
-        {
-            throw new NotFoundException("Storage not found or access denied");
-        }
-
-        if (storage.IsPublic) return storage;
-        
-        var access = storage.AccessEntries.First(a => a.UserId == userId);
-        if (access.CanWrite)
-        {
-            return storage;
-        }
-
-        throw new ForbiddenException("Write access required");
-    }
-
-    private async Task<Storage> GetStorageWithOwnerAccessOrThrowAsync(Guid id, Guid userId)
-    {
-        var storage = await repository.GetByIdWithAccessAsync(id, userId);
-        if (storage is null)
-        {
-            throw new NotFoundException("Storage not found or access denied");
-        }
-        
-        if (storage.IsPublic)
-        {
-            throw new ForbiddenException("Public storages cannot be managed by users");
-        }
-
-        var access = storage.AccessEntries.First(a => a.UserId == userId);
-        if (access.IsOwner)
-        {
-            return storage;
-        }
-
-        throw new ForbiddenException("Owner access required");
     }
 }

@@ -1,7 +1,8 @@
+using Lib.Modules.Storages.Entities;
 using Lib.Modules.Storages.Services;
 using Lib.Modules.Transfers.Adapters;
+using Lib.Modules.Transfers.DTOs;
 using Lib.Modules.Transfers.Factories;
-using Microsoft.AspNetCore.Http;
 using tusdotnet.Models;
 using tusdotnet.Models.Configuration;
 
@@ -15,10 +16,10 @@ public class TransferService(
     public async Task<DefaultTusConfiguration> GetTusConfigurationAsync(
         Guid storageId,
         Guid userId,
-        string scopePath,
-        HttpContext httpContext)
+        string scopePath
+    )
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         var store = adapter.CreateTusStore(userId, scopePath);
 
         return new DefaultTusConfiguration
@@ -34,30 +35,51 @@ public class TransferService(
 
     public async Task<long> GetContentLengthAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         CancellationToken cancellationToken = default
     )
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         return await adapter.GetContentLengthAsync(filePath, cancellationToken);
     }
 
     public async Task<Stream> GetContentAsync(
         Guid storageId,
-        Guid userId,
         string filePath,
         ByteRange? range,
         CancellationToken cancellationToken = default
     )
     {
-        var adapter = await GetStorageAdapter(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
         return await adapter.GetContentAsync(filePath, range, cancellationToken);
     }
 
-    private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId, Guid userId)
+    public async Task<StorageHealthDto> GetStorageHealthAsync(
+        Guid storageId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var storage = await storageService.GetRawByIdAsync(storageId, userId);
+        var adapter = await GetStorageAdapter(storageId);
+        return await adapter.GetStorageHealthAsync(cancellationToken);
+    }
+    
+    public async Task<StorageHealthDto> GetStorageHealthAsync(
+        Storage storage,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var adapter = GetStorageAdapter(storage);
+        return await adapter.GetStorageHealthAsync(cancellationToken);
+    }
+
+    private async Task<IStorageAdapter> GetStorageAdapter(Guid storageId)
+    {
+        var storage = await storageService.GetRawByIdAsync(storageId);
+        return GetStorageAdapter(storage);
+    }
+
+    private IStorageAdapter GetStorageAdapter(Storage storage)
+    {
         return adapterFactory.Create(storage);
     }
 }

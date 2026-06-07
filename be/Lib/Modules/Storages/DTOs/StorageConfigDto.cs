@@ -2,7 +2,7 @@ using Lib.Modules.Storages.Entities;
 
 namespace Lib.Modules.Storages.DTOs;
 
-public record StorageConfigDto(Guid Id, Dictionary<string, object?> Config)
+public record StorageConfigDto(StorageTypeDto Type, Dictionary<string, object?> Config)
 {
     public static StorageConfigDto FromStorage(Storage storage)
     {
@@ -19,6 +19,6 @@ public record StorageConfigDto(Guid Id, Dictionary<string, object?> Config)
             if (raw.ContainsKey(key)) raw[key] = null;
         }
  
-        return new StorageConfigDto(storage.Id, raw);
+        return new StorageConfigDto(StorageTypeDto.FromStorageType(storage.StorageType), raw);
     }
 }

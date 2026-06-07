@@ -6,6 +6,29 @@ namespace Lib.Modules.Users.Repositories;
 
 public class UserRepository(AppDbContext db) : IUserRepository
 {
+    public Task<List<User>> GetAllAsync(int page, int itemsPerPage)
+    {
+        return db.Set<User>()
+            .Include(u => u.Avatar)
+            .OrderBy(u => u.CreatedAt)
+            .Skip((page - 1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .ToListAsync();
+    }
+
+    public Task<List<User>> GetAllByIdsAsync(IEnumerable<Guid> ids)
+    {
+        return db.Set<User>()
+            .Include(u => u.Avatar)
+            .Where(u => ids.Contains(u.Id))
+            .ToListAsync();
+    }
+
+    public Task<int> CountAsync()
+    {
+        return db.Set<User>().CountAsync();
+    }
+    
     public Task<User?> GetByIdAsync(Guid id)
     {
         return db.Set<User>()

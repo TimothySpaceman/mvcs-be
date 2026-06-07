@@ -2,9 +2,8 @@ namespace Lib.Modules.Storages.Entities;
 
 public enum StorageAccessType
 {
-    Owner = 0,
     ReadWrite = 1,
-    ReadOnly = 2
+    Owner = 2,
 }
 
 public class StorageAccess
@@ -39,7 +38,6 @@ public class StorageAccess
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public bool IsOwner => AccessType == StorageAccessType.Owner;
+    public bool IsOwner => AccessType is StorageAccessType.Owner;
     public bool CanWrite => IsOwner || AccessType is StorageAccessType.ReadWrite;
-    public bool CanRead => true;
 }

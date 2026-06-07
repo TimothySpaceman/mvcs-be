@@ -17,7 +17,7 @@ namespace App.Infrastructure.Migrations.Snapshots
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -108,6 +108,87 @@ namespace App.Infrastructure.Migrations.Snapshots
                     b.ToTable("user_credentials", (string)null);
                 });
 
+            modelBuilder.Entity("Lib.Modules.Projects.Entities.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DefaultRefName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<bool>("IsInitialized")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("StorageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("StorageId");
+
+                    b.HasIndex("Title");
+
+                    b.ToTable("projects", (string)null);
+                });
+
+            modelBuilder.Entity("Lib.Modules.Projects.Entities.ProjectAccess", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccessType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ProjectId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("project_access", (string)null);
+                });
+
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -155,8 +236,9 @@ namespace App.Infrastructure.Migrations.Snapshots
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccessType")
-                        .HasColumnType("integer");
+                    b.Property<string>("AccessType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -359,6 +441,32 @@ namespace App.Infrastructure.Migrations.Snapshots
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Lib.Modules.Projects.Entities.Project", b =>
+                {
+                    b.HasOne("Lib.Modules.Users.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Lib.Modules.Storages.Entities.Storage", null)
+                        .WithMany()
+                        .HasForeignKey("StorageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Lib.Modules.Projects.Entities.ProjectAccess", b =>
+                {
+                    b.HasOne("Lib.Modules.Projects.Entities.Project", "Project")
+                        .WithMany("AccessEntries")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>
                 {
                     b.HasOne("Lib.Modules.Storages.Entities.StorageType", "StorageType")
@@ -394,6 +502,11 @@ namespace App.Infrastructure.Migrations.Snapshots
                 {
                     b.Navigation("RefreshToken")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Lib.Modules.Projects.Entities.Project", b =>
+                {
+                    b.Navigation("AccessEntries");
                 });
 
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>
