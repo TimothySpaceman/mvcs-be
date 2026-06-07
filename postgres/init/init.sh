@@ -9,7 +9,7 @@ create_db_if_not_exists() {
 
   if [ "$exists" != "1" ]; then
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
-      -c "CREATE DATABASE $db;"
+      -c "CREATE DATABASE $db ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0;"
   fi
 }
 
