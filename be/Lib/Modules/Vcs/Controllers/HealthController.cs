@@ -28,7 +28,7 @@ public class HealthController(
         {
             return NotFound(new
             {
-                message = "Storage not found"
+                message = "Project not found"
             });
         }
         
