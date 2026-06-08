@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using Core.Commits;
 using Core.FileChanges;
 using Lib.Modules.Vcs.Converters;
 using Lib.Modules.Vcs.Entities;
@@ -29,6 +30,13 @@ public class CommitEntityConfiguration : IEntityTypeConfiguration<CommitEntity>
 
         builder.Property(c => c.ParentId)
             .IsRequired(false);
+        
+        builder.Property(c => c.SecondParentId)
+            .IsRequired(false);
+
+        builder.Property(c => c.Kind)
+            .IsRequired()
+            .HasDefaultValue(CommitKind.Default);
 
         builder.Property(c => c.Message)
             .IsRequired()

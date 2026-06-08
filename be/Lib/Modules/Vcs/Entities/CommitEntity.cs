@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Core.Commits;
 using Core.FileChanges;
 using Core.Storage;
 
@@ -9,6 +10,8 @@ public class CommitEntity
     public HashId Id { get; private set; }
     public Guid ProjectId { get; private set; }
     public HashId? ParentId { get; private set; }
+    public HashId? SecondParentId { get; private set; }
+    public CommitKind Kind { get; private set; }
     public string Message { get; private set; } = null!;
     public DateTimeOffset CreatedAt { get; private set; }
     public UserIdentityEntity Author { get; private set; } = null!;
@@ -22,6 +25,8 @@ public class CommitEntity
         HashId id,
         Guid projectId,
         HashId? parentId,
+        HashId? secondParentId,
+        CommitKind kind,
         string message,
         DateTimeOffset createdAt,
         UserIdentityEntity author,
@@ -33,6 +38,8 @@ public class CommitEntity
             Id = id,
             ProjectId = projectId,
             ParentId = parentId,
+            SecondParentId = secondParentId,
+            Kind = kind,
             Message = message,
             CreatedAt = createdAt,
             Author = author,

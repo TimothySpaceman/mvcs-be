@@ -7,6 +7,8 @@ namespace Lib.Modules.Vcs.DTOs;
 public record CommitDto(
     HashId Id,
     HashId? ParentId,
+    HashId? SecondParentId,
+    CommitKind Kind,
     string Message,
     IReadOnlyList<FileChangeDto> Changes,
     UserIdentityDto Author,
@@ -18,6 +20,8 @@ public record CommitDto(
         return new CommitDto(
             domain.Id,
             domain.ParentId,
+            domain.SecondParentId,
+            domain.Kind,
             domain.Message,
             domain.Changes.Select(FileChangeDto.FromDomain).ToArray(),
             UserIdentityDto.FromDomain(domain.Author),
@@ -30,6 +34,8 @@ public record CommitDto(
         return new Commit(
             Id,
             ParentId,
+            SecondParentId,
+            Kind,
             Message,
             Changes.Select(c => c.ToDomain()).ToImmutableArray(),
             Author.ToDomain(),
