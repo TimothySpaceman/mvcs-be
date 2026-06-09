@@ -23,7 +23,7 @@ public class CommitEntityConfiguration : IEntityTypeConfiguration<CommitEntity>
     {
         builder.ToTable("commits");
 
-        builder.HasKey(c => c.Id);
+        builder.HasKey(c => new { c.Id, c.ProjectId });
 
         builder.Property(c => c.Id)
             .IsRequired();
