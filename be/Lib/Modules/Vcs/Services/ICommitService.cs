@@ -23,7 +23,7 @@ public interface ICommitService
         HashId? fromId = null,
         CancellationToken cancellationToken = default
     );
-    
+
     public Task<IEnumerable<Commit>> GetChainAsync(
         Guid projectId,
         HashId toId,
@@ -32,9 +32,23 @@ public interface ICommitService
         CancellationToken cancellationToken = default
     );
 
+    public Task<Commit?> FindCommonAncestorAsync(
+        Guid projectId,
+        HashId idA,
+        HashId idB,
+        CancellationToken cancellationToken = default
+    );
+
     public Task<Snapshot> GetSnapshotAsync(
         Guid projectId,
         HashId commitId,
+        CancellationToken cancellationToken = default
+    );
+
+    public Task<Snapshot> GetSnapshotAsync(
+        Guid projectId,
+        HashId commitId,
+        HashId? fromId = null,
         CancellationToken cancellationToken = default
     );
 }

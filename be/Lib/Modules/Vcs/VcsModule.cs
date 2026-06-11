@@ -23,8 +23,11 @@ public static class VcsModule
 
         services.AddScoped<IRefRepository, RefRepository>();
         services.AddScoped<IRefService, RefService>();
+        
+        services.AddScoped<IMergeRequestRepository, MergeRequestRepository>();
 
         services.AddScoped<IPushService, PushService>();
+        services.AddScoped<IMergeService, MergeService>();
 
         return services;
     }

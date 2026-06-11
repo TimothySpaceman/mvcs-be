@@ -1,7 +1,9 @@
+using Core.Storage;
+
 namespace Lib.Modules.Vcs.DTOs;
 
-public record PushRequestDto(
+public record PushRequestBodyDto(
     string RefName,
-    string? ExpectedHead,
+    HashId? ExpectedHead,
     IEnumerable<CommitDto> Commits
 );
