@@ -14,13 +14,24 @@ public class MergeRequestRepository(VcsDbContext db) : IMergeRequestRepository
 
     public Task<List<MergeRequest>> GetAllByProjectIdAsync(
         Guid projectId,
+        int page,
+        int itemsPerPage,
         CancellationToken cancellationToken = default
     )
     {
         return db.Set<MergeRequest>()
             .Where(m => m.ProjectId == projectId)
             .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * itemsPerPage)
+            .Take(itemsPerPage)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        return db.Set<MergeRequest>()
+            .Where(m => m.ProjectId == projectId)
+            .CountAsync(cancellationToken);
     }
 
     public async Task AddAsync(MergeRequest mergeRequest, CancellationToken cancellationToken = default)

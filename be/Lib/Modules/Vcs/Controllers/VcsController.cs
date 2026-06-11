@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Core.Identities;
 using Core.Storage;
 using Lib.Modules.Projects.Services;
-using Lib.Modules.Users.Services;
 using Lib.Modules.Vcs.DTOs;
 using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Repository;
@@ -17,12 +14,10 @@ namespace Lib.Modules.Vcs.Controllers;
 [ApiController]
 [Route("api/projects")]
 public class VcsController(
-    IUserService userService,
     IProjectService projectService,
     IRefService refService,
     ICommitService commitService,
     IPushService pushService,
-    IMergeService mergeService,
     IBlobMetadataRepository blobMetadataRepository
 ) : ControllerBase
 {
@@ -155,69 +150,6 @@ public class VcsController(
         }
 
         return NoContent();
-    }
-
-    [Authorize]
-    [HttpPost("{projectId:guid}/vcs/merge")]
-    public async Task<ActionResult> Merge(
-        [FromRoute] Guid projectId,
-        [FromBody] MergeRequestBodyDto bodyDto,
-        CancellationToken cancellationToken
-    )
-    {
-        var project = await projectService.GetRawByIdAsync(projectId);
-        var userId = GetCurrentUserId()!.Value;
-
-        if (!project.CanRead(userId))
-        {
-            return NotFound(new
-            {
-                message = "Project not found"
-            });
-        }
-
-        if (!project.CanWrite(userId))
-        {
-            return StatusCode(403, new { message = "You cannot perform merges in this project" });
-        }
-
-        if (bodyDto.TargetRefName == bodyDto.SourceRefName)
-        {
-            return BadRequest(new { message = "Cannot merge a branch into itself" });
-        }
-
-        var user = await userService.GetByIdAsync(userId);
-        if (user is null)
-        {
-            return Unauthorized(new
-            {
-                message = "Unable to fetch user data"
-            });
-        }
-
-        var result = await mergeService.MergeAsync(
-            bodyDto.Title,
-            projectId,
-            bodyDto.TargetRefName,
-            bodyDto.SourceRefName,
-            bodyDto.ExpectedTargetHead,
-            bodyDto.ExpectedSourceHead,
-            new UserIdentity(
-                user.Id,
-                user.DisplayName,
-                user.Email
-            ),
-            cancellationToken
-        );
-
-        return result switch
-        {
-            MergeResult.RefMismatch => Conflict(new { message = "Ref values mismatch detected" }),
-            MergeResult.RefNotFound => NotFound(new { message = "Ref not found" }),
-            MergeResult.RefValueNull => UnprocessableEntity(new { message = "Cannot perform merge on empty branches" }),
-            MergeResult.Success => NoContent(),
-            _ => throw new UnreachableException()
-        };
     }
 
     private Guid? GetCurrentUserId()
