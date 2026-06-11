@@ -23,8 +23,11 @@ public static class VcsModule
 
         services.AddScoped<IRefRepository, RefRepository>();
         services.AddScoped<IRefService, RefService>();
+        
+        services.AddScoped<IMergeRequestRepository, MergeRequestRepository>();
 
         services.AddScoped<IPushService, PushService>();
+        services.AddScoped<IMergeService, MergeService>();
 
         return services;
     }
@@ -40,6 +43,7 @@ public static class VcsModule
         modelBuilder.ApplyConfiguration(new BlobMetadataEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RefEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new MergeRequestConfiguration());
     }
 
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)

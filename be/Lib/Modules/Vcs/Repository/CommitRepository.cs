@@ -64,8 +64,22 @@ public class CommitRepository(VcsDbContext db) : ICommitRepository
         CancellationToken cancellationToken = default
     )
     {
-        var entities = commits.Select(c => c.ToEntity(projectId)).ToList();
-        await db.Set<CommitEntity>().AddRangeAsync(entities, cancellationToken);
+        var commitsList = commits.ToList();
+        if (commitsList.Count == 0) return;
+
+        var incomingIds = commitsList.Select(c => c.Id).ToHashSet();
+
+        var existingIds = await db.Set<CommitEntity>()
+            .Where(c => c.ProjectId == projectId && incomingIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToHashSetAsync(cancellationToken);
+
+        var newCommits = commitsList
+            .Where(c => !existingIds.Contains(c.Id))
+            .Select(c => c.ToEntity(projectId))
+            .ToList();
+
+        if (newCommits.Count > 0) await db.Set<CommitEntity>().AddRangeAsync(newCommits, cancellationToken);
     }
 
     public async Task<bool> RemoveAsync(
@@ -80,7 +94,7 @@ public class CommitRepository(VcsDbContext db) : ICommitRepository
 
         return deleted > 0;
     }
-    
+
     public Task SaveChangesAsync(
         CancellationToken cancellationToken = default
     )

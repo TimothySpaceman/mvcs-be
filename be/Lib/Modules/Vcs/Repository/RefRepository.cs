@@ -12,6 +12,20 @@ public class RefRepository(VcsDbContext db) : IRefRepository
             .FirstOrDefaultAsync(r => r.ProjectId == projectId && r.Name == name, cancellationToken);
     }
 
+    public Task<RefEntity?> GetForUpdateAsync(Guid projectId, string name,
+        CancellationToken cancellationToken = default)
+    {
+        return db.Set<RefEntity>()
+            .FromSqlInterpolated(
+                $"""
+                 SELECT * FROM "refs"
+                 WHERE "ProjectId" = {projectId} AND "Name" = {name}
+                 FOR UPDATE
+                 """
+            )
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public Task<List<RefEntity>> GetAllAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         return db.Set<RefEntity>()

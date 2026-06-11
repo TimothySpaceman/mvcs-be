@@ -11,6 +11,8 @@ public static class CommitMapping
             domain.Id,
             projectId,
             domain.ParentId,
+            domain.SecondParentId,
+            domain.Kind,
             domain.Message,
             domain.CreatedAt,
             domain.Author.ToEntity(),
@@ -23,6 +25,8 @@ public static class CommitMapping
         return new Commit(
             entity.Id,
             entity.ParentId,
+            entity.SecondParentId,
+            entity.Kind,
             entity.Message,
             entity.Changes,
             entity.Author.ToDomain(),

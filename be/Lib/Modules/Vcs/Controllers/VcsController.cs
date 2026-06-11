@@ -6,7 +6,6 @@ using Lib.Modules.Vcs.DTOs;
 using Lib.Modules.Vcs.Helpers;
 using Lib.Modules.Vcs.Repository;
 using Lib.Modules.Vcs.Services;
-using Lib.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +22,7 @@ public class VcsController(
 ) : ControllerBase
 {
     [HttpGet("{projectId:guid}/vcs/pull")]
-    public async Task<ActionResult<PullResultDto>> Pull(
+    public async Task<ActionResult<PullResultBodyDto>> Pull(
         [FromRoute] Guid projectId,
         [FromQuery] string refName,
         [FromQuery] string? fromId,
@@ -56,7 +55,7 @@ public class VcsController(
         var blobIds = BlobHelper.GetBlobsFromCommitsChain(chainList);
         var blobs = await blobMetadataRepository.GetAllByIdsAsync(blobIds, projectId, cancellationToken);
 
-        return Ok(new PullResultDto(
+        return Ok(new PullResultBodyDto(
             chainList.Select(CommitDto.FromDomain),
             blobs.Select(BlobMetadataDto.FromDomain)
         ));
@@ -115,7 +114,7 @@ public class VcsController(
     [HttpPost("{projectId:guid}/vcs/push")]
     public async Task<ActionResult> Push(
         [FromRoute] Guid projectId,
-        [FromBody] PushRequestDto bodyDto,
+        [FromBody] PushRequestBodyDto bodyDto,
         CancellationToken cancellationToken
     )
     {
@@ -134,21 +133,21 @@ public class VcsController(
             return StatusCode(403, new { message = "You cannot push to this project" });
         }
 
-        var refValue = await refService.GetRefValueAsync(projectId, bodyDto.RefName, cancellationToken);
-        if (refValue != HashIdHelper.ParseNullable(bodyDto.ExpectedHead))
+        var result = await pushService.ApplyPushAsync(
+            project,
+            bodyDto.RefName,
+            bodyDto.ExpectedHead,
+            bodyDto.Commits.Select(c => c.ToDomain()),
+            cancellationToken
+        );
+
+        if (result == PushResult.RefMismatch)
         {
             return Conflict(new
             {
                 message = "Ref values mismatch detected"
             });
         }
-
-        await pushService.UpdateCommitsChainAsync(
-            project,
-            bodyDto.RefName,
-            bodyDto.Commits.Select(c => c.ToDomain()),
-            cancellationToken
-        );
 
         return NoContent();
     }

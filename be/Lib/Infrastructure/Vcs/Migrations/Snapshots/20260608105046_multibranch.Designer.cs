@@ -3,6 +3,7 @@ using System;
 using Lib.Infrastructure.Vcs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
 {
     [DbContext(typeof(VcsDbContext))]
-    partial class VcsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608105046_multibranch")]
+    partial class multibranch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,9 +50,6 @@ namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Changes")
                         .IsRequired()
                         .HasColumnType("jsonb");
@@ -71,57 +71,18 @@ namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<string>("SecondParentId")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.HasKey("Id", "ProjectId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("commits", (string)null);
-                });
-
-            modelBuilder.Entity("Lib.Modules.Vcs.Entities.MergeRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MergeCommitId")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("SourceRefName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("TargetRefName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(4096)
-                        .HasColumnType("character varying(4096)");
+                    b.Property<string>("SecondParentId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("merge_requests", (string)null);
+                    b.ToTable("commits", (string)null);
                 });
 
             modelBuilder.Entity("Lib.Modules.Vcs.Entities.RefEntity", b =>
@@ -150,9 +111,6 @@ namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
                                 .HasMaxLength(32)
                                 .HasColumnType("character varying(32)");
 
-                            b1.Property<Guid>("CommitEntityProjectId")
-                                .HasColumnType("uuid");
-
                             b1.Property<string>("Email")
                                 .HasMaxLength(512)
                                 .HasColumnType("character varying(512)")
@@ -168,12 +126,12 @@ namespace Lib.Infrastructure.Vcs.Migrations.Snapshots
                                 .HasColumnType("character varying(256)")
                                 .HasColumnName("AuthorName");
 
-                            b1.HasKey("CommitEntityId", "CommitEntityProjectId");
+                            b1.HasKey("CommitEntityId");
 
                             b1.ToTable("commits");
 
                             b1.WithOwner()
-                                .HasForeignKey("CommitEntityId", "CommitEntityProjectId");
+                                .HasForeignKey("CommitEntityId");
                         });
 
                     b.Navigation("Author")

@@ -69,10 +69,50 @@ public class CommitService(ICommitRepository commitRepository) : ICommitService
         return chain;
     }
 
-    public async Task<Snapshot> GetSnapshotAsync(Guid projectId, HashId commitId,
-        CancellationToken cancellationToken = default)
+    public async Task<Commit?> FindCommonAncestorAsync(
+        Guid projectId,
+        HashId idA,
+        HashId idB,
+        CancellationToken cancellationToken = default
+    )
     {
-        var chain = (await GetChainAsync(projectId, commitId, null, cancellationToken)).ToList();
+        var allCommits = await commitRepository.GetAllAsync(projectId, cancellationToken);
+
+        var ancestorsA = new HashSet<HashId>();
+        var current = allCommits.GetValueOrDefault(idA);
+        while (current is not null)
+        {
+            ancestorsA.Add(current.Id);
+            current = current.ParentId is null ? null : allCommits.GetValueOrDefault(current.ParentId.Value);
+        }
+
+        current = allCommits.GetValueOrDefault(idB);
+        while (current is not null)
+        {
+            if (ancestorsA.Contains(current.Id)) return current;
+            current = current.ParentId is null ? null : allCommits.GetValueOrDefault(current.ParentId.Value);
+        }
+
+        return null;
+    }
+
+    public async Task<Snapshot> GetSnapshotAsync(
+        Guid projectId,
+        HashId commitId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await GetSnapshotAsync(projectId, commitId, null, cancellationToken);
+    }
+
+    public async Task<Snapshot> GetSnapshotAsync(
+        Guid projectId,
+        HashId commitId,
+        HashId? fromId = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var chain = (await GetChainAsync(projectId, commitId, fromId, cancellationToken)).ToList();
         chain.Reverse();
 
         var files = new Dictionary<string, FileSnapshot>();

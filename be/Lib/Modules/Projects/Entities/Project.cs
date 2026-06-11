@@ -63,7 +63,7 @@ public class Project
         IsPublic = isPublic;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
-    
+
     public void UpdateDefaultRef(string? refName)
     {
         DefaultRefName = refName;
