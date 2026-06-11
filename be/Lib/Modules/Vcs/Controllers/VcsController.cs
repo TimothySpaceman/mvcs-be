@@ -134,21 +134,23 @@ public class VcsController(
             return StatusCode(403, new { message = "You cannot push to this project" });
         }
 
-        var refValue = await refService.GetRefValueAsync(projectId, bodyDto.RefName, cancellationToken);
-        if (refValue != HashIdHelper.ParseNullable(bodyDto.ExpectedHead))
+        var expectedHeadValue = HashIdHelper.ParseNullable(bodyDto.ExpectedHead);
+
+        var result = await pushService.ApplyPushAsync(
+            project,
+            bodyDto.RefName,
+            expectedHeadValue,
+            bodyDto.Commits.Select(c => c.ToDomain()),
+            cancellationToken
+        );
+
+        if (result == PushResult.RefMismatch)
         {
             return Conflict(new
             {
                 message = "Ref values mismatch detected"
             });
         }
-
-        await pushService.UpdateCommitsChainAsync(
-            project,
-            bodyDto.RefName,
-            bodyDto.Commits.Select(c => c.ToDomain()),
-            cancellationToken
-        );
 
         return NoContent();
     }

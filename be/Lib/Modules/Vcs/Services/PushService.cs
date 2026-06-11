@@ -1,10 +1,13 @@
+using System.Data;
 using Core.Commits;
 using Core.Storage;
+using Lib.Infrastructure.Vcs;
 using Lib.Modules.Projects.Entities;
 using Lib.Modules.Projects.Services;
 using Lib.Modules.Vcs.Entities;
 using Lib.Modules.Vcs.Repository;
 using Lib.Shared.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lib.Modules.Vcs.Services;
 
@@ -12,52 +15,90 @@ public class PushService(
     IBlobMetadataRepository blobMetadataRepository,
     ICommitRepository commitRepository,
     IRefRepository refRepository,
-    IProjectService projectService
+    IProjectService projectService,
+    VcsDbContext vcsDbContext
 ) : IPushService
 {
-    public async Task UpdateCommitsChainAsync(
+    public async Task<PushResult> ApplyPushAsync(
         Guid projectId,
         string refName,
+        HashId? expectedHead,
         IEnumerable<Commit> commits,
         CancellationToken cancellationToken = default
     )
     {
         var project = await projectService.GetRawByIdAsync(projectId);
-        await UpdateCommitsChainAsync(project, refName, commits, cancellationToken);
+        return await ApplyPushAsync(project, refName, expectedHead, commits, cancellationToken);
     }
 
-    public async Task UpdateCommitsChainAsync(
+    public async Task<PushResult> ApplyPushAsync(
         Project project,
         string refName,
+        HashId? expectedHead,
         IEnumerable<Commit> commits,
         CancellationToken cancellationToken = default
     )
     {
         var commitsList = commits.ToList();
+        if (commitsList.Count == 0)
+        {
+            throw new BadRequestException("Empty commits chain provided");
+        }
+
+        await using var tx = await vcsDbContext.Database.BeginTransactionAsync(
+            IsolationLevel.RepeatableRead,
+            cancellationToken
+        );
+
+        var refEntry = await refRepository.GetForUpdateAsync(project.Id, refName, cancellationToken);
+        if (refEntry?.CommitId != expectedHead) return PushResult.RefMismatch;
+
         var latestCommit = GetLatestCommit(commitsList);
 
-        var blobIds = commitsList.SelectMany(c => c.Changes
+        await PersistCommitsAsync(project.Id, commitsList, cancellationToken);
+        await UpdateRefAsync(project.Id, refName, refEntry, latestCommit.Id, cancellationToken);
+
+        await tx.CommitAsync(cancellationToken);
+
+        if (!project.IsInitialized) await projectService.InitializeAsync(project, refName);
+        return PushResult.Success;
+    }
+
+    private async Task PersistCommitsAsync(
+        Guid projectId,
+        List<Commit> commits,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var blobIds = commits.SelectMany(c => c.Changes
             .Where(fc => fc.After is not null)
             .Select(fc => fc.After!.BlobId)
         ).Distinct();
-        await EnsureBlobIdsAsync(project.Id, blobIds, cancellationToken);
 
-        await commitRepository.AddRangeAsync(project.Id, commitsList, cancellationToken);
+        await EnsureBlobIdsAsync(projectId, blobIds, cancellationToken);
 
-        var refEntry = await refRepository.GetAsync(project.Id, refName, cancellationToken);
+        await commitRepository.AddRangeAsync(projectId, commits, cancellationToken);
+    }
+
+    private async Task UpdateRefAsync(
+        Guid projectId,
+        string refName,
+        RefEntity? refEntry,
+        HashId commitId,
+        CancellationToken cancellationToken = default
+    )
+    {
         if (refEntry is null)
         {
-            refEntry = RefEntity.Create(project.Id, refName, latestCommit.Id);
+            refEntry = RefEntity.Create(projectId, refName, commitId);
             await refRepository.AddAsync(refEntry, cancellationToken);
         }
         else
         {
-            refEntry.SetCommitId(latestCommit.Id);
+            refEntry.SetCommitId(commitId);
         }
 
         await refRepository.SaveChangesAsync(cancellationToken);
-
-        if (!project.IsInitialized) await projectService.InitializeAsync(project, refName);
     }
 
     private async Task EnsureBlobIdsAsync(
@@ -66,11 +107,19 @@ public class PushService(
         CancellationToken cancellationToken = default
     )
     {
-        var existingIds = (await blobMetadataRepository.GetAllByProjectIdAsync(projectId, cancellationToken))
+        var blobIdsList = blobIds.ToList();
+        var existingIds = (await blobMetadataRepository.GetAllByIdsAsync(
+                blobIdsList,
+                projectId,
+                cancellationToken
+            ))
             .Select(bm => bm.Id)
             .ToHashSet();
-        var missingId = blobIds.FirstOrDefault(b => !existingIds.Contains(b));
-        if (!missingId.IsEmpty) throw new BadRequestException($"Blob {missingId} not found");
+
+        var missingId = blobIdsList
+            .Cast<HashId?>()
+            .FirstOrDefault(b => !existingIds.Contains(b!.Value));
+        if (missingId is not null) throw new BadRequestException($"Blob {missingId} not found");
     }
 
     private static Commit GetLatestCommit(IReadOnlyList<Commit> commits)
