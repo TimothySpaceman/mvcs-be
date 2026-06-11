@@ -18,7 +18,7 @@ public class RefRepository(VcsDbContext db) : IRefRepository
         return db.Set<RefEntity>()
             .FromSqlInterpolated(
                 $"""
-                 SELECT * FROM "Refs"
+                 SELECT * FROM "refs"
                  WHERE "ProjectId" = {projectId} AND "Name" = {name}
                  FOR UPDATE
                  """
