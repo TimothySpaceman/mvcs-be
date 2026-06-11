@@ -40,6 +40,7 @@ public static class VcsModule
         modelBuilder.ApplyConfiguration(new BlobMetadataEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RefEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new MergeRequestConfiguration());
     }
 
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)
