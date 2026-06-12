@@ -28,6 +28,9 @@ public static class VcsModule
 
         services.AddScoped<IPushService, PushService>();
         services.AddScoped<IMergeService, MergeService>();
+        
+        services.AddScoped<ISnapshotMetadataRepository, SnapshotMetadataRepository>();
+        services.AddScoped<ISnapshotMetadataService, SnapshotMetadataService>();
 
         return services;
     }
@@ -44,6 +47,7 @@ public static class VcsModule
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RefEntityConfiguration());
         modelBuilder.ApplyConfiguration(new MergeRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new SnapshotMetadataConfiguration());
     }
 
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)
