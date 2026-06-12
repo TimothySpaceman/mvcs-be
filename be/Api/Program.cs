@@ -8,6 +8,7 @@ using Lib.Modules.Auth;
 using Lib.Modules.Projects;
 using Lib.Modules.Storages;
 using Lib.Modules.Storages.Entities.Schema;
+using Lib.Modules.Tasks;
 using Lib.Modules.Transfers;
 using Lib.Modules.Users;
 using Lib.Modules.Vcs;
@@ -28,6 +29,7 @@ builder.Services.AddStoragesModule();
 builder.Services.AddTransfersModule();
 builder.Services.AddProjectsModule();
 builder.Services.AddVcsModule();
+builder.Services.AddTasksModule();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
