@@ -44,6 +44,7 @@ public static class VcsModule
         modelBuilder.ApplyConfiguration(new CommitEntityConfiguration());
         modelBuilder.ApplyConfiguration(new RefEntityConfiguration());
         modelBuilder.ApplyConfiguration(new MergeRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new SnapshotMetadataConfiguration());
     }
 
     public static void ApplyVcsConventions(this ModelConfigurationBuilder configurationBuilder)
