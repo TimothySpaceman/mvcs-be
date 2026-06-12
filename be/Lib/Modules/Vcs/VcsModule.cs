@@ -28,6 +28,9 @@ public static class VcsModule
 
         services.AddScoped<IPushService, PushService>();
         services.AddScoped<IMergeService, MergeService>();
+        
+        services.AddScoped<ISnapshotMetadataRepository, SnapshotMetadataRepository>();
+        services.AddScoped<ISnapshotMetadataService, SnapshotMetadataService>();
 
         return services;
     }
