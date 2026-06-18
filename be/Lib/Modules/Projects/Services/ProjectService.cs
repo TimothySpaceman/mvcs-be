@@ -1,12 +1,25 @@
 using Lib.Modules.Projects.DTOs;
 using Lib.Modules.Projects.Entities;
 using Lib.Modules.Projects.Repositories;
+using Lib.Shared.DTOs;
 using Lib.Shared.Exceptions;
 
 namespace Lib.Modules.Projects.Services;
 
 public class ProjectService(IProjectRepository repository) : IProjectService
 {
+    public async Task<PagedResultDto<ProjectDto>> SearchAsync(ProjectFilter filter, Guid? viewerUserId)
+    {
+        var projects = await repository.SearchAsync(filter, viewerUserId);
+        var total = await repository.CountAsync(filter, viewerUserId);
+        return new PagedResultDto<ProjectDto>(
+            projects.Select(p => ProjectDto.FromProject(p, viewerUserId)),
+            filter.Page,
+            filter.ItemsPerPage,
+            total
+        );
+    }
+    
     public async Task<List<ProjectDto>> GetAllByAuthorIdAsync(Guid authorId, Guid? userId = null)
     {
         var projects = await repository.GetAllByAuthorIdAsync(authorId);

@@ -1,10 +1,13 @@
 using Lib.Modules.Projects.DTOs;
 using Lib.Modules.Projects.Entities;
+using Lib.Modules.Projects.Repositories;
+using Lib.Shared.DTOs;
 
 namespace Lib.Modules.Projects.Services;
 
 public interface IProjectService
 {
+    public Task<PagedResultDto<ProjectDto>> SearchAsync(ProjectFilter filter, Guid? viewerUserId);
     public Task<List<ProjectDto>> GetAllByAuthorIdAsync(Guid authorId, Guid? userId = null);
     public Task<ProjectDto?> GetByIdAsync(Guid id, Guid? userId = null);
     public Task<Project> GetRawByIdAsync(Guid id);

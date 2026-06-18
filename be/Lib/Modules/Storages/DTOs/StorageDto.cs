@@ -9,11 +9,19 @@ public record StorageDto(
     bool IsDefault,
     bool IsPublic,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    StorageAccessLevel AccessLevel
 )
 {
-    public static StorageDto FromStorage(Storage storage)
+    public static StorageDto FromStorage(Storage storage, Guid? userId = null)
     {
+        var accessLevel = StorageAccessLevel.Public;
+        if (userId is not null)
+        {
+            var entry = storage.AccessEntries.FirstOrDefault(a => a.UserId == userId);
+            if (entry is not null) accessLevel = entry.IsOwner ? StorageAccessLevel.Owner : StorageAccessLevel.Write;
+        }
+        
         return new StorageDto(
             storage.Id,
             storage.Name,
@@ -21,7 +29,8 @@ public record StorageDto(
             storage.IsPublic,
             storage.IsDefault,
             storage.CreatedAt,
-            storage.UpdatedAt
+            storage.UpdatedAt,
+            accessLevel
         );
     }
 }

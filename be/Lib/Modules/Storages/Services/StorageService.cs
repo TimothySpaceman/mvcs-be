@@ -10,13 +10,13 @@ public class StorageService(IStorageRepository repository) : IStorageService
     public async Task<List<StorageDto>> GetAllByUserIdAsync(Guid userId)
     {
         var storages = await repository.GetAllByUserIdAsync(userId);
-        return storages.Select(StorageDto.FromStorage).ToList();
+        return storages.Select(s => StorageDto.FromStorage(s, userId)).ToList();
     }
 
-    public async Task<StorageDto?> GetByIdAsync(Guid id)
+    public async Task<StorageDto?> GetByIdAsync(Guid id, Guid? userId = null)
     {
         var storage = await repository.GetByIdAsync(id);
-        return storage is null ? null : StorageDto.FromStorage(storage);
+        return storage is null ? null : StorageDto.FromStorage(storage, userId);
     }
 
     public async Task<Storage> GetRawByIdAsync(Guid id)
@@ -43,15 +43,18 @@ public class StorageService(IStorageRepository repository) : IStorageService
 
         var created = await repository.GetByIdAsync(storage.Id);
         if (created is null) throw new InvalidOperationException("Failed to create storage");
-        return StorageDto.FromStorage(created);
+        return StorageDto.FromStorage(created, ownerId);
     }
 
-    public async Task<StorageDto> UpdateAsync(Guid id, StorageUpdateDto updateDto)
+    public async Task<StorageDto> UpdateAsync(
+        Guid id,
+        StorageUpdateDto updateDto,
+        Guid? userId = null
+    )
     {
         var storage = await GetRawByIdAsync(id);
         storage.Rename(updateDto.Name);
-        await repository.SaveChangesAsync();
-        return StorageDto.FromStorage(storage);
+        return StorageDto.FromStorage(storage, userId);
     }
 
     public async Task UpdateConfigAsync(Guid id, StorageUpdateConfigDto updateDto)

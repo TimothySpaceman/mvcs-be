@@ -1,9 +1,12 @@
+using Lib.Modules.Projects.DTOs;
 using Lib.Modules.Projects.Entities;
 
 namespace Lib.Modules.Projects.Repositories;
 
 public interface IProjectRepository
 {
+    public Task<List<Project>> SearchAsync(ProjectFilter filter, Guid? viewerUserId);
+    public Task<int> CountAsync(ProjectFilter filter, Guid? viewerUserId);
     public Task<List<Project>> GetAllByAuthorIdAsync(Guid userId);
     public Task<List<Project>> GetAllByStorageIdAsync(Guid storageId);
     public Task<Project?> GetByIdAsync(Guid id);
