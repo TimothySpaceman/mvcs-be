@@ -83,6 +83,31 @@ public class ProjectController(IProjectService projectService, IStorageService s
         await projectService.DeleteAsync(id);
         return NoContent();
     }
+    
+    [Authorize]
+    [HttpGet("{projectId:guid}/members")]
+    public async Task<ActionResult<List<ProjectMemberDto>>> GetMembers(
+        Guid projectId,
+        [FromQuery] List<ProjectAccessLevel>? accessLevels = null
+    )
+    {
+        var project = await projectService.GetRawByIdAsync(projectId);
+        if (!project.CanReadExplicitly(GetCurrentUserId()))
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+
+        var members = project.AccessEntries
+            .Select(a => new ProjectMemberDto(a.UserId, a.CanWrite ? ProjectAccessLevel.Write : ProjectAccessLevel.Read))
+            .Append(new ProjectMemberDto(project.AuthorId, ProjectAccessLevel.Owner));
+
+        if (accessLevels is { Count: > 0 })
+        {
+            members = members.Where(m => accessLevels.Contains(m.AccessLevel));
+        }
+
+        return Ok(members.ToList());
+    }
 
     private Guid GetCurrentUserId()
     {

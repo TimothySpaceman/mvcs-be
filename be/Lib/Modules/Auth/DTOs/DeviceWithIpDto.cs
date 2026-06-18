@@ -54,9 +54,8 @@ public record DeviceWithIpDto(
 
     private static string ParseOs(string userAgent)
     {
-        if (userAgent.Contains("maccatalyst")) return "macOS";
-        if (userAgent.Contains("mac os x")) return "macOS";
-        if (userAgent.Contains("windows")) return "Windows";
+        if (userAgent.Contains("maccatalyst") || userAgent.Contains("mac os x")) return "macOS";
+        if (userAgent.Contains("windows") || userAgent.Contains("winui")) return "Windows";
         if (userAgent.Contains("linux")) return "Linux";
         if (userAgent.Contains("android")) return "Android";
         if (userAgent.Contains("ios")) return "iOS";

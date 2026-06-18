@@ -1,4 +1,6 @@
 using Lib.Modules.Tasks.Configurations;
+using Lib.Modules.Tasks.Repositories;
+using Lib.Modules.Tasks.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +10,9 @@ public static class TasksModule
 {
     public static IServiceCollection AddTasksModule(this IServiceCollection services)
     {
+        services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<ITaskService, TaskService>();
+        
         return services;
     }
 

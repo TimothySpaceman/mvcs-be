@@ -51,12 +51,16 @@ public class ProjectTask
         };
     }
 
-    public void Update(string title, string? description, DateTimeOffset? deadline)
+    public void Update(string? title, string? description, DateTimeOffset? deadline)
     {
-        Title = title;
-        Description = description;
-        Deadline = deadline;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        Title = title ?? Title;
+        Description = description ?? Description;
+        Deadline = deadline ?? Deadline;
+
+        if (title is not null || description is not null || deadline is not null)
+        {
+            UpdatedAt = DateTimeOffset.UtcNow;
+        }
     }
 
     public void ChangeStatus(TaskStatus status)

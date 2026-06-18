@@ -81,6 +81,12 @@ public class Project
         if (userId is null) return false;
         return AuthorId == userId || AccessEntries.Any(a => a.UserId == userId);
     }
+    
+    public bool CanReadExplicitly(Guid? userId)
+    {
+        if (userId is null) return false;
+        return AuthorId == userId || AccessEntries.Any(a => a.UserId == userId);
+    }
 
     public bool CanWrite(Guid userId)
     {
