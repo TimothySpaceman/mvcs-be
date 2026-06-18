@@ -2,7 +2,8 @@ namespace Lib.Modules.Projects.DTOs;
 
 public enum ProjectAccessLevel
 {
-    Read = 0,
-    Write = 1,
-    Owner = 2
+    Public = 0,
+    Read = 1,
+    Write = 2,
+    Owner = 3
 }

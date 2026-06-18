@@ -2,8 +2,8 @@ namespace Lib.Modules.Projects.Entities;
 
 public enum ProjectAccessType
 {
-    ReadOnly = 0,
-    ReadWrite = 1
+    Read = 0,
+    Write = 1
 }
 
 public class ProjectAccess
@@ -38,6 +38,6 @@ public class ProjectAccess
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public bool CanWrite => AccessType is ProjectAccessType.ReadWrite;
+    public bool CanWrite => AccessType is ProjectAccessType.Write;
     public bool CanRead => true;
 }

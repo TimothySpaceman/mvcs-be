@@ -9,14 +9,14 @@ namespace Lib.Modules.Users.Services;
 
 public class UserService(IUserRepository repository) : IUserService
 {
-    public async Task<PagedResultDto<UserDto>> GetAllAsync(int page, int itemsPerPage)
+    public async Task<PagedResultDto<UserDto>> GetAllAsync(UserFilter filter)
     {
-        var users = await repository.GetAllAsync(page, itemsPerPage);
-        var totalItems = await repository.CountAsync();
+        var users = await repository.GetAllAsync(filter);
+        var totalItems = await repository.CountAsync(filter);
         return new PagedResultDto<UserDto>(
             users.Select(UserDto.FromUser),
-            page,
-            itemsPerPage,
+            filter.Page,
+            filter.ItemsPerPage,
             totalItems
         );
     }

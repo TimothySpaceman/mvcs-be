@@ -26,7 +26,7 @@ public class ProjectController(IProjectService projectService, IStorageService s
     {
         var project = await projectService.GetRawByIdAsync(id);
         var userId = GetCurrentUserId(true);
-        if (project.CanRead(userId)) return Ok(ProjectDto.FromProject(project));
+        if (project.CanRead(userId)) return Ok(ProjectDto.FromProject(project, userId));
         return NotFound(new { message = "Project not found" });
     }
 
@@ -58,7 +58,8 @@ public class ProjectController(IProjectService projectService, IStorageService s
     public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectUpdateDto dto)
     {
         var project = await projectService.GetByIdAsync(id);
-        if (project is null || project.AuthorId != GetCurrentUserId())
+        var userId = GetCurrentUserId();
+        if (project is null || project.AuthorId != userId)
         {
             return NotFound(new
             {
@@ -66,7 +67,7 @@ public class ProjectController(IProjectService projectService, IStorageService s
             });
         }
 
-        var updated = await projectService.UpdateAsync(id, dto);
+        var updated = await projectService.UpdateAsync(id, dto, userId);
         return Ok(updated);
     }
 
@@ -107,6 +108,46 @@ public class ProjectController(IProjectService projectService, IStorageService s
         }
 
         return Ok(members.ToList());
+    }
+    
+    [Authorize]
+    [HttpPut("{projectId:guid}/access/{targetUserId:guid}")]
+    public async Task<ActionResult> GrantAccess(Guid projectId, Guid targetUserId, [FromBody] ProjectGrantAccessDto dto)
+    {
+        var project = await projectService.GetRawByIdAsync(projectId);
+        var userId = GetCurrentUserId();
+
+        if (!project.CanReadExplicitly(userId)) 
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+        if (project.AuthorId != userId) 
+        {
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
+        }
+
+        await projectService.GrantAccessAsync(projectId, targetUserId, dto.AccessType);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpDelete("{projectId:guid}/access/{targetUserId:guid}")]
+    public async Task<ActionResult> RevokeAccess(Guid projectId, Guid targetUserId)
+    {
+        var project = await projectService.GetRawByIdAsync(projectId);
+        var userId = GetCurrentUserId();
+
+        if (!project.CanReadExplicitly(userId)) 
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+        if (project.AuthorId != userId) 
+        {
+            return StatusCode(403, new { message = "You cannot manage access for this project" });
+        }
+
+        await projectService.RevokeAccessAsync(projectId, targetUserId);
+        return NoContent();
     }
 
     private Guid GetCurrentUserId()
