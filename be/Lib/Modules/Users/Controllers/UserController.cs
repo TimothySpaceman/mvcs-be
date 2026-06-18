@@ -1,4 +1,5 @@
 using Lib.Modules.Users.DTOs;
+using Lib.Modules.Users.Repositories;
 using Lib.Modules.Users.Services;
 using Lib.Shared.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +19,19 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResultDto<UserDto>>> GetAll(
         [FromQuery] int page = MinPage,
-        [FromQuery] int itemsPerPage = DefaultItemsPerPage
+        [FromQuery] int itemsPerPage = DefaultItemsPerPage,
+        [FromQuery] string? search = null
     )
     {
         if (page < MinPage || itemsPerPage < MinItemsPerPage || itemsPerPage > MaxItemsPerPage)
-        {
             return BadRequest(new { message = "Invalid pagination parameters" });
-        }
 
-        var result = await userService.GetAllAsync(page, itemsPerPage);
+        var result = await userService.GetAllAsync(new UserFilter
+        {
+            Page = page,
+            ItemsPerPage = itemsPerPage,
+            Search = search
+        });
         return Ok(result);
     }
 

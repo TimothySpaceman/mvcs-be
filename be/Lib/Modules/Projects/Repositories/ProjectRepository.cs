@@ -6,6 +6,49 @@ namespace Lib.Modules.Projects.Repositories;
 
 public class ProjectRepository(AppDbContext db) : IProjectRepository
 {
+    public Task<List<Project>> SearchAsync(ProjectFilter filter, Guid? viewerUserId)
+    {
+        return BuildQuery(filter, viewerUserId)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Skip((filter.Page - 1) * filter.ItemsPerPage)
+            .Take(filter.ItemsPerPage)
+            .ToListAsync();
+    }
+
+    public Task<int> CountAsync(ProjectFilter filter, Guid? viewerUserId)
+    {
+        return BuildQuery(filter, viewerUserId).CountAsync();
+    }
+
+    private IQueryable<Project> BuildQuery(ProjectFilter filter, Guid? viewerUserId)
+    {
+        var query = db.Set<Project>()
+            .Include(p => p.AccessEntries)
+            .AsQueryable();
+        
+
+        if (filter.ExplicitAccessOnly is not null && filter.ExplicitAccessOnly.Value && viewerUserId.HasValue)
+            query = query.Where(p => p.AuthorId == viewerUserId.Value || p.AccessEntries.Any(a => a.UserId == viewerUserId.Value));
+        else if (viewerUserId.HasValue)
+            query = query.Where(p => p.IsPublic || p.AuthorId == viewerUserId.Value || p.AccessEntries.Any(a => a.UserId == viewerUserId.Value));
+        else
+            query = query.Where(p => p.IsPublic);
+
+        if (filter.IsPublic is not null)
+            query = query.Where(p => p.IsPublic == filter.IsPublic);
+
+        if (filter.AuthorId is not null)
+            query = query.Where(p => p.AuthorId == filter.AuthorId);
+
+        if (filter.StorageId is not null)
+            query = query.Where(p => p.StorageId == filter.StorageId);
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+            query = query.Where(p => p.Title.Contains(filter.Search) || p.Description.Contains(filter.Search));
+
+        return query;
+    }
+    
     public Task<List<Project>> GetAllByAuthorIdAsync(Guid userId)
     {
         return db.Set<Project>()

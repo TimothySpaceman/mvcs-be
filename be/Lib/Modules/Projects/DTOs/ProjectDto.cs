@@ -11,11 +11,29 @@ public record ProjectDto(
     bool IsInitialized,
     string? DefaultRefName,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    ProjectAccessLevel AccessLevel,
+    Guid? StorageId
 )
 {
-    public static ProjectDto FromProject(Project project)
+    public static ProjectDto FromProject(Project project, Guid? userId = null)
     {
+        ProjectAccessLevel accessLevel = ProjectAccessLevel.Public;
+        Guid? storageId = null;
+        if (userId is not null)
+        {
+            if (project.AuthorId == userId)
+            {
+                accessLevel = ProjectAccessLevel.Owner;
+                storageId = project.StorageId;
+            }
+            else
+            {
+                var entry = project.AccessEntries.FirstOrDefault(a => a.UserId == userId);
+                if (entry is not null) accessLevel = entry.CanWrite ? ProjectAccessLevel.Write : ProjectAccessLevel.Read;
+            }
+        }
+        
         return new ProjectDto(
             project.Id,
             project.AuthorId,
@@ -25,7 +43,9 @@ public record ProjectDto(
             project.IsInitialized,
             project.DefaultRefName,
             project.CreatedAt,
-            project.UpdatedAt
+            project.UpdatedAt,
+            accessLevel,
+            storageId
         );
     }
 }

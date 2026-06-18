@@ -8,11 +8,15 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/http.conf:/etc/nginx/conf.d/http.conf:ro
+      - ./nginx/conf.d/https.conf:/etc/nginx/conf.d/https.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks: [ serving ]
-  
+
   api:
     build:
       context: ./be
@@ -22,7 +26,7 @@ services:
     container_name: api
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__AppDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_APP};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
       ConnectionStrings__VcsDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB_VCS};Username=${POSTGRES_APP_USER};Password=${POSTGRES_APP_PASS}"
@@ -34,8 +38,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      flyway_app:
+        condition: service_completed_successfully
+      flyway_vcs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks: [ serving, internal ]
-  
+
   postgres:
     image: postgres:17-alpine
     container_name: postgres
@@ -58,7 +72,7 @@ services:
       timeout: 5s
       retries: 5
     networks: [ internal ]
-  
+
   flyway_app:
     image: flyway/flyway:12-alpine
     container_name: flyway_app
@@ -69,12 +83,12 @@ services:
       - ./be/Lib/Infrastructure/App/Migrations/Sql:/flyway/sql
     command: >
       -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_APP}
-      -user=${POSTGRES_APP_USER} 
+      -user=${POSTGRES_APP_USER}
       -password=${POSTGRES_APP_PASS}
       -locations=filesystem:/flyway/sql
       migrate
     networks: [ internal ]
-  
+
   flyway_vcs:
     image: flyway/flyway:12-alpine
     container_name: flyway_vcs
@@ -85,14 +99,14 @@ services:
       - ./be/Lib/Infrastructure/Vcs/Migrations/Sql:/flyway/sql
     command: >
       -url=jdbc:postgresql://postgres:5432/${POSTGRES_DB_VCS}
-      -user=${POSTGRES_APP_USER} 
+      -user=${POSTGRES_APP_USER}
       -password=${POSTGRES_APP_PASS}
       -locations=filesystem:/flyway/sql
       migrate
     networks: [ internal ]
 
   redis:
-    image: redis:8.6.2-alpine
+    image: redis:8-alpine
     container_name: redis
     restart: unless-stopped
     environment:

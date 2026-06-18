@@ -6,14 +6,42 @@ namespace Lib.Modules.Users.Repositories;
 
 public class UserRepository(AppDbContext db) : IUserRepository
 {
-    public Task<List<User>> GetAllAsync(int page, int itemsPerPage)
+    public Task<List<User>> GetAllAsync(UserFilter filter)
     {
-        return db.Set<User>()
-            .Include(u => u.Avatar)
+        var query = db.Set<User>().Include(u => u.Avatar).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var term = filter.Search.Trim().ToLower();
+            query = query.Where(u =>
+                u.Username.ToLower().Contains(term) ||
+                u.DisplayName.ToLower().Contains(term) ||
+                u.Email.ToLower().Contains(term)
+            );
+        }
+
+        return query
             .OrderBy(u => u.CreatedAt)
-            .Skip((page - 1) * itemsPerPage)
-            .Take(itemsPerPage)
+            .Skip((filter.Page - 1) * filter.ItemsPerPage)
+            .Take(filter.ItemsPerPage)
             .ToListAsync();
+    }
+
+    public Task<int> CountAsync(UserFilter filter)
+    {
+        var query = db.Set<User>().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var term = filter.Search.Trim().ToLower();
+            query = query.Where(u =>
+                u.Username.ToLower().Contains(term) ||
+                u.DisplayName.ToLower().Contains(term) ||
+                u.Email.ToLower().Contains(term)
+            );
+        }
+
+        return query.CountAsync();
     }
 
     public Task<List<User>> GetAllByIdsAsync(IEnumerable<Guid> ids)
@@ -22,11 +50,6 @@ public class UserRepository(AppDbContext db) : IUserRepository
             .Include(u => u.Avatar)
             .Where(u => ids.Contains(u.Id))
             .ToListAsync();
-    }
-
-    public Task<int> CountAsync()
-    {
-        return db.Set<User>().CountAsync();
     }
     
     public Task<User?> GetByIdAsync(Guid id)

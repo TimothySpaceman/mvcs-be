@@ -17,7 +17,6 @@ public class SnapshotMetadataController(
     ISnapshotMetadataService snapshotMetadataService
 ) : ControllerBase
 {
-    [Authorize]
     [HttpGet("{projectId:guid}/vcs/commits/{commitId}/metadata")]
     public async Task<ActionResult<SnapshotMetadataDto>> GetMetadata(
         [FromRoute] Guid projectId,

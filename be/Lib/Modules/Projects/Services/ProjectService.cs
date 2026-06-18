@@ -1,22 +1,35 @@
 using Lib.Modules.Projects.DTOs;
 using Lib.Modules.Projects.Entities;
 using Lib.Modules.Projects.Repositories;
+using Lib.Shared.DTOs;
 using Lib.Shared.Exceptions;
 
 namespace Lib.Modules.Projects.Services;
 
 public class ProjectService(IProjectRepository repository) : IProjectService
 {
-    public async Task<List<ProjectDto>> GetAllByAuthorIdAsync(Guid authorId)
+    public async Task<PagedResultDto<ProjectDto>> SearchAsync(ProjectFilter filter, Guid? viewerUserId)
+    {
+        var projects = await repository.SearchAsync(filter, viewerUserId);
+        var total = await repository.CountAsync(filter, viewerUserId);
+        return new PagedResultDto<ProjectDto>(
+            projects.Select(p => ProjectDto.FromProject(p, viewerUserId)),
+            filter.Page,
+            filter.ItemsPerPage,
+            total
+        );
+    }
+    
+    public async Task<List<ProjectDto>> GetAllByAuthorIdAsync(Guid authorId, Guid? userId = null)
     {
         var projects = await repository.GetAllByAuthorIdAsync(authorId);
-        return projects.Select(ProjectDto.FromProject).ToList();
+        return projects.Select(p => ProjectDto.FromProject(p, userId)).ToList();
     }
 
-    public async Task<ProjectDto?> GetByIdAsync(Guid id)
+    public async Task<ProjectDto?> GetByIdAsync(Guid id, Guid? userId = null)
     {
         var project = await repository.GetByIdAsync(id);
-        return project is null ? null : ProjectDto.FromProject(project);
+        return project is null ? null : ProjectDto.FromProject(project, userId);
     }
 
     public async Task<Project> GetRawByIdAsync(Guid id)
@@ -37,10 +50,10 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         );
         await repository.AddAsync(project);
         await repository.SaveChangesAsync();
-        return ProjectDto.FromProject(project);
+        return ProjectDto.FromProject(project, authorId);
     }
 
-    public async Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto updateDto)
+    public async Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto updateDto, Guid? userId = null)
     {
         var project = await GetRawByIdAsync(id);
         if (updateDto.Title is not null) project.Rename(updateDto.Title);
@@ -48,7 +61,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         if (updateDto.IsPublic is not null) project.UpdateVisibility(updateDto.IsPublic.Value);
         if (updateDto.DefaultRefName is not null) project.UpdateDefaultRef(updateDto.DefaultRefName);
         await repository.SaveChangesAsync();
-        return ProjectDto.FromProject(project);
+        return ProjectDto.FromProject(project, userId);
     }
 
     public async Task InitializeAsync(Project project, string defaultRefName)
@@ -71,18 +84,18 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         await repository.SaveChangesAsync();
     }
 
-    public async Task GrantAccessAsync(Guid id, ProjectGrantAccessDto grantDto)
+    public async Task GrantAccessAsync(Guid id, Guid targetUserId, ProjectAccessType accessType)
     {
         var project = await GetRawByIdAsync(id);
 
-        var existing = project.AccessEntries.FirstOrDefault(a => a.UserId == grantDto.UserId);
+        var existing = project.AccessEntries.FirstOrDefault(a => a.UserId == targetUserId);
         if (existing is not null)
         {
-            existing.ChangeAccessType(grantDto.AccessType);
+            existing.ChangeAccessType(accessType);
         }
         else
         {
-            var newAccess = ProjectAccess.Create(project.Id, grantDto.UserId, grantDto.AccessType);
+            var newAccess = ProjectAccess.Create(project.Id, targetUserId, accessType);
             await repository.AddAccessAsync(newAccess);
         }
 
