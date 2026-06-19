@@ -1,5 +1,6 @@
 using Lib.Modules.Auth;
 using Lib.Modules.Projects;
+using Lib.Modules.Releases;
 using Lib.Modules.Storages;
 using Lib.Modules.Tasks;
 using Lib.Modules.Users;
@@ -18,5 +19,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.ApplyStoragesConfigurations();
         modelBuilder.ApplyProjectsConfigurations();
         modelBuilder.ApplyTasksConfigurations();
+        modelBuilder.ApplyReleasesConfigurations();
     }
 }

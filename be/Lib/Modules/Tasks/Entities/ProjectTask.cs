@@ -12,7 +12,7 @@ public class ProjectTask
 {
     public Guid Id { get; private set; }
     public Guid ProjectId { get; private set; }
-    public Guid AuthorId { get; private set; }
+    public Guid? AuthorId { get; private set; }
     public string Title { get; private set; } = null!;
     public string? Description { get; private set; }
     public TaskStatus Status { get; private set; }

@@ -45,7 +45,7 @@ public class ProjectTaskConfiguration : IEntityTypeConfiguration<ProjectTask>
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(t => t.AuthorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(t => t.Assignments)
             .WithOne(a => a.Task)

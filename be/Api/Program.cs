@@ -6,6 +6,7 @@ using Lib.Infrastructure.Redis;
 using Lib.Infrastructure.Vcs;
 using Lib.Modules.Auth;
 using Lib.Modules.Projects;
+using Lib.Modules.Releases;
 using Lib.Modules.Storages;
 using Lib.Modules.Storages.Entities.Schema;
 using Lib.Modules.Tasks;
@@ -30,6 +31,7 @@ builder.Services.AddTransfersModule();
 builder.Services.AddProjectsModule();
 builder.Services.AddVcsModule();
 builder.Services.AddTasksModule();
+builder.Services.AddReleasesModule();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
