@@ -1,8 +1,10 @@
 services:
   frontend:
-    image: mvcs-frontend:latest
+    image: mvcs-frontend:0.1.1
     container_name: frontend
     restart: unless-stopped
+    environment:
+      API_HOST: http://api:8080/api
     networks: [ serving ]
 
   nginx:

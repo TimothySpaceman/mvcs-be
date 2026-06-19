@@ -1,4 +1,6 @@
 using Lib.Modules.Releases.Configurations;
+using Lib.Modules.Releases.Repositories;
+using Lib.Modules.Releases.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,8 +10,8 @@ public static class ReleasesModule
 {
     public static IServiceCollection AddReleasesModule(this IServiceCollection services)
     {
-        // services.AddScoped<ITaskRepository, TaskRepository>();
-        // services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<IReleaseRepository, ReleaseRepository>();
+        services.AddScoped<IReleaseService, ReleaseService>();
         
         return services;
     }

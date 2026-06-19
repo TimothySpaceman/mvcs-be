@@ -30,4 +30,11 @@ public class Release
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
+    
+    public ReleaseFile AddFile(string fileName, string blobId)
+    {
+        var file = ReleaseFile.Create(Id, fileName, blobId);
+        _files.Add(file);
+        return file;
+    }
 }
