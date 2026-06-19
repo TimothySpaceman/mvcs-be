@@ -1,7 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Repositories;
 using Lib.Modules.Users.Services;
 using Lib.Shared.DTOs;
+using Lib.Shared.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lib.Modules.Users.Controllers;
@@ -57,5 +61,27 @@ public class UserController(IUserService userService) : ControllerBase
     {
         var user = await userService.GetByIdAsync(id);
         return user is not null ? Ok(user) : NotFound(new { message = "User not found" });
+    }
+    
+    [Authorize]
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<UserDto>> Update(Guid id, [FromBody] UserUpdateDto dto)
+    {
+        if (id != GetCurrentUserId())
+        {
+            return StatusCode(403, new { message = "You cannot edit this user" });
+        }
+
+        var updated = await userService.UpdateByIdAsync(id, dto);
+        return Ok(updated);
+    }
+
+    private Guid GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+
+        if (claim is null) throw new UnauthorizedException("Unable to identify the user");
+        return Guid.Parse(claim.Value);
     }
 }

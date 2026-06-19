@@ -9,7 +9,7 @@ namespace Lib.Modules.Auth.Services;
 
 public class JwtService(IConfiguration config) : IJwtService
 {
-    public string GenerateAccessToken(UserDto user)
+    public string GenerateAccessToken(UserDto user, Guid sessionId)
     {
         var secret = config["JwtSettings:Access:Secret"]!;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
@@ -19,7 +19,8 @@ public class JwtService(IConfiguration config) : IJwtService
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sid, sessionId.ToString())
         };
 
         var token = new JwtSecurityToken(

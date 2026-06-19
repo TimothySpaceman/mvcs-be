@@ -7,17 +7,19 @@ public record UserMetadataDto(
     string Username,
     string DisplayName,
     bool IsEmailVerified,
-    UserAvatarDto? Avatar
+    UserAvatarDto? Avatar,
+    Guid SessionId
 )
 {
-    public static UserMetadataDto FromUserDto(UserDto userDto)
+    public static UserMetadataDto FromUserDto(UserDto userDto, Guid sessionId)
     {
         return new UserMetadataDto(
             userDto.Id,
             userDto.Username,
             userDto.DisplayName,
             userDto.IsEmailVerified,
-            userDto.Avatar
+            userDto.Avatar,
+            sessionId
         );
     }
 };

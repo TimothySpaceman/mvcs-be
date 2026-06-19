@@ -5,6 +5,7 @@ using Lib.Modules.Auth.Entities;
 using Lib.Modules.Auth.Repositories;
 using Lib.Modules.Users.DTOs;
 using Lib.Modules.Users.Services;
+using Lib.Shared.DTOs;
 using Lib.Shared.Exceptions;
 using Microsoft.Extensions.Configuration;
 
@@ -18,10 +19,23 @@ public class SessionService(
     IConfiguration config
 ) : ISessionService
 {
-    public async Task<IEnumerable<SessionDto>> GetAllByUserIdAsync(Guid userId)
+    public async Task<CursorPagedResultDto<SessionDto, Guid?>> GetPageByUserIdAsync(
+        Guid userId,
+        Guid? cursor,
+        int limit
+    )
     {
-        var sessions = await sessionRepository.GetByUserIdAsync(userId);
-        return sessions.Select(SessionDto.FromSession);
+        var sessions = await sessionRepository.GetPageByUserIdAsync(userId, cursor, limit + 1);
+
+        var hasMore = sessions.Count > limit;
+        var page = sessions.Take(limit).ToList();
+        var nextCursor = hasMore ? page[^1].Id : (Guid?)null;
+
+        return new CursorPagedResultDto<SessionDto, Guid?>(
+            page.Select(SessionDto.FromSession),
+            limit,
+            nextCursor
+        );
     }
 
     public async Task<TokenPairDto> CreateAsync(SessionCreateDto createDto)
@@ -37,7 +51,7 @@ public class SessionService(
         await sessionRepository.AddAsync(session);
         await sessionRepository.SaveChangesAsync();
 
-        var tokenPairDto = CreateTokens(user);
+        var tokenPairDto = CreateTokens(user, session.Id);
         await AttachRefreshToken(tokenPairDto.RefreshToken, session.Id);
         await tokenRepository.SaveChangesAsync();
 
@@ -60,7 +74,7 @@ public class SessionService(
         }
 
         var oldToken = session.RefreshToken;
-        var tokenPairDto = CreateTokens(UserDto.FromUser(session.User));
+        var tokenPairDto = CreateTokens(UserDto.FromUser(session.User), session.Id);
         await AttachRefreshToken(tokenPairDto.RefreshToken, session.Id);
         tokenRepository.Delete(oldToken);
         await tokenRepository.SaveChangesAsync();
@@ -69,6 +83,16 @@ public class SessionService(
         await sessionRepository.SaveChangesAsync();
 
         return tokenPairDto;
+    }
+    
+    public async Task<bool> RevokeByIdAsync(Guid sessionId, Guid requestingUserId)
+    {
+        var session = await sessionRepository.GetByIdAsync(sessionId);
+        if (session is null || session.UserId != requestingUserId) return false;
+
+        session.Revoke();
+        await sessionRepository.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> RevokeByTokenAsync(string refreshToken)
@@ -88,11 +112,11 @@ public class SessionService(
         await sessionRepository.SaveChangesAsync();
     }
 
-    private TokenPairDto CreateTokens(UserDto user)
+    private TokenPairDto CreateTokens(UserDto user, Guid sessionId)
     {
-        var accessToken = jwtService.GenerateAccessToken(user);
+        var accessToken = jwtService.GenerateAccessToken(user, sessionId);
         var refreshToken = jwtService.GenerateRefreshToken(user);
-        return new TokenPairDto(accessToken, refreshToken, user);
+        return new TokenPairDto(accessToken, refreshToken, user, sessionId);
     }
 
     private string HashToken(string token)
