@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/releases ]
   workflow_dispatch:
 
 jobs:
@@ -21,11 +21,11 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /opt/mvcs
+            cd /srv/apps/mvcs-be
             PREVIOUS_COMMIT=$(git rev-parse HEAD)
             echo $PREVIOUS_COMMIT > /tmp/mvcs_previous_commit
             git pull origin main
-            docker compose -f docker-compose.yml up -d --build
+            docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1
@@ -35,10 +35,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /opt/mvcs
+            cd /srv/apps/mvcs-be
             echo "Waiting for containers to start..."
             sleep 30
-            CONTAINERS=("nginx" "api" "postgres" "redis")
+            CONTAINERS=("nginx" "api" "postgres" "redis" "frontend")
             FAILED=0
 
             for CONTAINER in "${CONTAINERS[@]}"; do
@@ -62,7 +62,7 @@ jobs:
               PREVIOUS_COMMIT=$(cat /tmp/mvcs_previous_commit)
               git checkout main
               git reset --hard $PREVIOUS_COMMIT
-              docker compose -f docker-compose.yml up -d --build
+              docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
 
               echo "Rollback to $PREVIOUS_COMMIT complete."
               exit 1
