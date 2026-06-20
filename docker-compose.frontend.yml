@@ -1,0 +1,18 @@
+services:
+  frontend:
+    image: mvcs-frontend:0.1.1
+    container_name: frontend
+    restart: unless-stopped
+    environment:
+      API_HOST: http://api:8080/api
+    networks: [ serving ]
+
+  nginx:
+    depends_on:
+      - frontend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/frontend.http.conf:/etc/nginx/conf.d/frontend.http.conf:ro
+      - ./nginx/conf.d/frontend.https.conf:/etc/nginx/conf.d/frontend.https.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro

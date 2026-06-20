@@ -1,0 +1,16 @@
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  nginx:
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/http.conf:/etc/nginx/conf.d/http.conf:ro
