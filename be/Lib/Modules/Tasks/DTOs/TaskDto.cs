@@ -5,7 +5,7 @@ namespace Lib.Modules.Tasks.DTOs;
 public record TaskDto(
     Guid Id,
     Guid ProjectId,
-    Guid AuthorId,
+    Guid? AuthorId,
     string Title,
     string? Description,
     Entities.TaskStatus Status,

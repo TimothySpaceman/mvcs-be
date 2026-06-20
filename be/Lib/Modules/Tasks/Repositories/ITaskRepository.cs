@@ -4,11 +4,11 @@ namespace Lib.Modules.Tasks.Repositories;
 
 public interface ITaskRepository
 {
-    Task<ProjectTask?> GetByIdAsync(Guid id);
-    Task<List<ProjectTask>> GetAllAsync(TaskFilter filter);
-    Task AddAsync(ProjectTask task);
-    void Delete(ProjectTask task);
-    Task AddAssignmentAsync(TaskAssignment assignment);
-    void DeleteAssignment(TaskAssignment assignment);
-    Task SaveChangesAsync();
+    public Task<ProjectTask?> GetByIdAsync(Guid id);
+    public Task<List<ProjectTask>> GetAllAsync(TaskFilter filter);
+    public Task AddAsync(ProjectTask task);
+    public void Delete(ProjectTask task);
+    public Task AddAssignmentAsync(TaskAssignment assignment);
+    public void DeleteAssignment(TaskAssignment assignment);
+    public Task SaveChangesAsync();
 }

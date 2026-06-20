@@ -139,7 +139,7 @@ public class AuthController(
         };
 
         var metadataString = JsonSerializer.Serialize(
-            UserMetadataDto.FromUserDto(tokens.User),
+            UserMetadataDto.FromUserDto(tokens.User, tokens.SessionId),
             new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase

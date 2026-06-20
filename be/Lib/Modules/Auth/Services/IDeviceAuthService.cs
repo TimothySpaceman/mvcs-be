@@ -1,5 +1,4 @@
 using Lib.Modules.Auth.DTOs;
-using Lib.Modules.Auth.Entities;
 
 namespace Lib.Modules.Auth.Services;
 

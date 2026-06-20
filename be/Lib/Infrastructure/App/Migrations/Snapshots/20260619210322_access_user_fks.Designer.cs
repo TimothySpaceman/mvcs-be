@@ -3,17 +3,20 @@ using System;
 using Lib.Infrastructure.App;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace App.Infrastructure.Migrations.Snapshots
+namespace Lib.Infrastructure.App.Migrations.Snapshots
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260619210322_access_user_fks")]
+    partial class access_user_fks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,64 +190,6 @@ namespace App.Infrastructure.Migrations.Snapshots
                     b.HasIndex("UserId");
 
                     b.ToTable("project_access", (string)null);
-                });
-
-            modelBuilder.Entity("Lib.Modules.Releases.Entities.Release", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("releases", (string)null);
-                });
-
-            modelBuilder.Entity("Lib.Modules.Releases.Entities.ReleaseFile", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BlobId")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<Guid>("ReleaseId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReleaseId");
-
-                    b.ToTable("release_files", (string)null);
                 });
 
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>
@@ -598,29 +543,6 @@ namespace App.Infrastructure.Migrations.Snapshots
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Lib.Modules.Releases.Entities.Release", b =>
-                {
-                    b.HasOne("Lib.Modules.Users.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Lib.Modules.Projects.Entities.Project", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Lib.Modules.Releases.Entities.ReleaseFile", b =>
-                {
-                    b.HasOne("Lib.Modules.Releases.Entities.Release", null)
-                        .WithMany("Files")
-                        .HasForeignKey("ReleaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>
                 {
                     b.HasOne("Lib.Modules.Storages.Entities.StorageType", "StorageType")
@@ -698,11 +620,6 @@ namespace App.Infrastructure.Migrations.Snapshots
             modelBuilder.Entity("Lib.Modules.Projects.Entities.Project", b =>
                 {
                     b.Navigation("AccessEntries");
-                });
-
-            modelBuilder.Entity("Lib.Modules.Releases.Entities.Release", b =>
-                {
-                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("Lib.Modules.Storages.Entities.Storage", b =>

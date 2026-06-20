@@ -22,6 +22,28 @@ public class SessionRepository(AppDbContext db) : ISessionRepository
             .ToListAsync();
     }
 
+    public async Task<List<Session>> GetPageByUserIdAsync(Guid userId, Guid? beforeId, int limit)
+    {
+        var query = db.Set<Session>()
+            .Include(s => s.RefreshToken)
+            .Where(s => s.UserId == userId);
+
+        if (beforeId is not null)
+        {
+            var beforeDate = await db.Set<Session>()
+                .Where(s => s.Id == beforeId)
+                .Select(s => s.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            query = query.Where(s => s.CreatedAt < beforeDate);
+        }
+
+        return await query
+            .OrderByDescending(s => s.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
     public Task<Session?> GetByTokenHashAsync(string tokenHash)
     {
         return db.Set<Session>()

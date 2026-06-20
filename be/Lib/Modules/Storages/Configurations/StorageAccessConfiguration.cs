@@ -1,4 +1,5 @@
 using Lib.Modules.Storages.Entities;
+using Lib.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,6 +22,11 @@ public class StorageAccessConfiguration : IEntityTypeConfiguration<StorageAccess
 
         builder.Property(a => a.UpdatedAt)
             .IsRequired();
+        
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(a => a.UserId);
     }

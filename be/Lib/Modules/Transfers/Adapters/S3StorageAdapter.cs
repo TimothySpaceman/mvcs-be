@@ -94,11 +94,12 @@ public class S3StorageAdapter : IStorageAdapter
     {
         try
         {
-            var request = new GetBucketLocationRequest
+            var request = new ListObjectsV2Request
             {
-                BucketName = _config.Bucket
+                BucketName = _config.Bucket,
+                MaxKeys = 1
             };
-            await _s3Client.GetBucketLocationAsync(request, cancellationToken);
+            await _s3Client.ListObjectsV2Async(request, cancellationToken);
             return new StorageHealthDto(true, null);
         }
         catch (AmazonS3Exception ex)

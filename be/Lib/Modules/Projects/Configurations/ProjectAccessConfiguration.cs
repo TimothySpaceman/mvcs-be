@@ -1,4 +1,5 @@
 using Lib.Modules.Projects.Entities;
+using Lib.Modules.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,7 +22,12 @@ public class ProjectAccessConfiguration : IEntityTypeConfiguration<ProjectAccess
 
         builder.Property(a => a.UpdatedAt)
             .IsRequired();
-
+        
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         builder.HasIndex(a => a.UserId);
     }
 }
