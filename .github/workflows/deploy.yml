@@ -1,0 +1,71 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/mvcs
+            PREVIOUS_COMMIT=$(git rev-parse HEAD)
+            echo $PREVIOUS_COMMIT > /tmp/mvcs_previous_commit
+            git pull origin main
+            docker compose -f docker-compose.yml up -d --build
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/mvcs
+            echo "Waiting for containers to start..."
+            sleep 30
+            CONTAINERS=("nginx" "api" "postgres" "redis")
+            FAILED=0
+
+            for CONTAINER in "${CONTAINERS[@]}"; do
+              STATUS=$(docker inspect --format='{{.State.Status}}' $CONTAINER 2>/dev/null || echo "missing")
+              HEALTH=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' $CONTAINER 2>/dev/null || echo "missing")
+
+              if [ "$STATUS" != "running" ]; then
+                echo "FAIL: $CONTAINER is $STATUS"
+                FAILED=1
+              elif [ "$HEALTH" != "none" ] && [ "$HEALTH" != "healthy" ]; then
+                echo "FAIL: $CONTAINER health is $HEALTH"
+                FAILED=1
+              else
+                echo "OK: $CONTAINER ($STATUS, health: $HEALTH)"
+              fi
+            done
+
+            if [ "$FAILED" -eq 1 ]; then
+              echo "Deployment verification failed. Rolling back..."
+
+              PREVIOUS_COMMIT=$(cat /tmp/mvcs_previous_commit)
+              git checkout main
+              git reset --hard $PREVIOUS_COMMIT
+              docker compose -f docker-compose.yml up -d --build
+
+              echo "Rollback to $PREVIOUS_COMMIT complete."
+              exit 1
+            fi
+
+            echo "All containers are healthy. Deployment successful."
