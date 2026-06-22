@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: mvcs-frontend:0.1.1
+    image: mvcs-frontend:0.1.2
     container_name: frontend
     restart: unless-stopped
     environment:

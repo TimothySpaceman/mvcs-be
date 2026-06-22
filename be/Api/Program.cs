@@ -62,14 +62,11 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("NextJsDev");
+if (app.Environment.IsDevelopment()) app.UseCors("NextJsDev");
 
-    const string openApiPattern = "/api/openapi/{documentName}.json";
-    app.MapOpenApi(openApiPattern);
-    app.MapScalarApiReference("/api/docs", options => { options.OpenApiRoutePattern = openApiPattern; });
-}
+const string openApiPattern = "/api/openapi/{documentName}.json";
+app.MapOpenApi(openApiPattern);
+app.MapScalarApiReference("/api/docs", options => { options.OpenApiRoutePattern = openApiPattern; });
 
 app.UseAuthentication();
 app.UseAuthorization();
